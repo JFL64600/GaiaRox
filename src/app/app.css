@@ -1,0 +1,49 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1rem clamp(1rem, 4vw, 3rem);
+  color: #fff;
+  background: #173f2a;
+}
+
+.brand {
+  color: inherit;
+  font-size: 1.15rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+nav {
+  display: flex;
+  gap: 1rem;
+}
+
+nav a {
+  color: #dceae0;
+  text-underline-offset: 0.3rem;
+}
+
+nav a.active {
+  color: #fff;
+  font-weight: 700;
+}
+
+main {
+  width: min(72rem, 100%);
+  margin-inline: auto;
+  padding: clamp(1.5rem, 4vw, 3rem);
+}
+
+@media (max-width: 34rem) {
+  .site-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
