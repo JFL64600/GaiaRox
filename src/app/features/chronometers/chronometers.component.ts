@@ -61,15 +61,6 @@ export class ChronometersComponent {
     this.naming.set(false);
     this.pendingName.set('');
   }
-
-  protected start(): void {
-    this.store.start();
-  }
-
-  protected resume(): void {
-    this.store.resume();
-  }
-
   protected stop(id: string): void {
     this.store.stop(id);
   }
