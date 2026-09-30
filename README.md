@@ -24,7 +24,10 @@ Open `http://localhost:4200/`.
 ## Synchronized chronometers
 
 Each application lifetime creates one random set of 5–10 independently identified
-chronometers. They begin stopped at `00:00.000`. The native **Start** button starts every
+chronometers. They begin stopped at `00:00.000`. Before Start, the **+** tile adds another
+chronometer: it first asks for a name (required, trimmed, up to 40 characters, unique
+ignoring case), which then labels the card. **Cancel** or <kbd>Esc</kbd> abandons the request.
+The native **Start** button starts every
 card from one shared clock instant and remains disabled for that application lifetime.
 Each card has an aligned **Stop** button that becomes available while its chronometer is
 running. Stopping one card freezes its exact click-time value while the other

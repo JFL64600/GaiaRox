@@ -83,6 +83,20 @@ describe('ChronometerStore', () => {
     expect(Object.isFrozen(entries[0])).toBe(true);
   });
 
+  it('stores the trimmed name given to add() and defaults blank names', () => {
+    const { store } = createHarness();
+
+    store.add('  Xabi  ');
+    store.add('   ');
+    store.add();
+
+    expect(store.chronometers().map(({ name }) => name)).toEqual([
+      'Xabi',
+      'Chronometer 2',
+      'Chronometer 3',
+    ]);
+  });
+
   it('keeps previously added entries stable and identity-preserving across add() calls', () => {
     const { store } = createHarness();
     store.add();
@@ -224,9 +238,9 @@ describe('ChronometerStore', () => {
       'chronometer-2',
       'chronometer-1',
     ]);
-    expect(harness.store.chronometers().map(({ elapsedMilliseconds }) => elapsedMilliseconds)).toEqual([
-      500, 1_500, 3_000,
-    ]);
+    expect(
+      harness.store.chronometers().map(({ elapsedMilliseconds }) => elapsedMilliseconds),
+    ).toEqual([500, 1_500, 3_000]);
   });
 
   it('places stopped chronometers ahead of still-running ones regardless of elapsed time', () => {
@@ -368,7 +382,8 @@ describe('ChronometerStore', () => {
     harness.setNow(3_000);
     harness.store.stop(ids[1]);
     harness.setNow(5_000);
-    harness.store.chronometers()
+    harness.store
+      .chronometers()
       .filter(({ status }) => status === 'running')
       .forEach(({ id }) => harness.store.stop(id));
     expect(harness.tick.observed).toBe(false);
@@ -382,7 +397,9 @@ describe('ChronometerStore', () => {
     expect(harness.tick.observed).toBe(true);
     expect(harness.store.allStopped()).toBe(false);
     expect(
-      harness.store.chronometers().every(({ status, stopInstant }) => status === 'running' && stopInstant === null),
+      harness.store
+        .chronometers()
+        .every(({ status, stopInstant }) => status === 'running' && stopInstant === null),
     ).toBe(true);
     // Each entry continues from its own frozen elapsed value rather than resetting to zero.
     expect(harness.store.chronometers()[0]?.elapsedMilliseconds).toBe(1_000);
@@ -417,9 +434,7 @@ describe('ChronometerStore', () => {
     harness.store.resume();
 
     expect(harness.timerCalls()).toBe(3);
-    expect(
-      harness.store.chronometers().every(({ status }) => status === 'running'),
-    ).toBe(true);
+    expect(harness.store.chronometers().every(({ status }) => status === 'running')).toBe(true);
     expect(harness.store.chronometers()[0]?.elapsedMilliseconds).toBe(2_000);
   });
 

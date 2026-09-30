@@ -46,13 +46,14 @@ export class ChronometerStore {
     );
   });
 
-  add(): void {
+  add(name?: string): void {
     if (this.started()) {
       return;
     }
 
     const displayNumber = this.nextId();
     const id = `chronometer-${displayNumber}`;
+    const chronometerName = name?.trim() || `Chronometer ${displayNumber}`;
     this.nextId.update((value) => value + 1);
     this.entries.update((entries) =>
       Object.freeze([
@@ -60,6 +61,7 @@ export class ChronometerStore {
         Object.freeze({
           id,
           displayNumber,
+          name: chronometerName,
           status: 'stopped' as const,
           startInstant: null,
           stopInstant: null,
@@ -157,7 +159,6 @@ export class ChronometerStore {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.currentInstant.set(this.clock()));
   }
-
 }
 
 function statusRank(entry: ChronometerState): number {

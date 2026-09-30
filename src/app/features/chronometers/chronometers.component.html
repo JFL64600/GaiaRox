@@ -23,7 +23,7 @@
           [class.running]="chronometer.status === 'running'"
           [attr.id]="chronometer.id"
         >
-          <h2>Chronometer {{ chronometer.displayNumber }}</h2>
+          <h2>{{ chronometer.name }}</h2>
           <output class="time" [attr.aria-label]="'Elapsed time ' + chronometer.formattedElapsed">
             {{ chronometer.formattedElapsed }}
           </output>
@@ -35,7 +35,7 @@
             <button
               class="stop-button"
               type="button"
-              [attr.aria-label]="'Stop Chronometer ' + chronometer.displayNumber"
+              [attr.aria-label]="'Stop ' + chronometer.name"
               [disabled]="chronometer.status !== 'running'"
               (click)="stop(chronometer.id)"
             >
@@ -47,16 +47,48 @@
     }
     @if (!store.started()) {
       <li>
-        <button
-          class="add-tile"
-          type="button"
-          aria-label="Add chronometer"
-          (click)="add()"
-        >
-          <span aria-hidden="true">+</span>
-        </button>
+        @if (naming()) {
+          <form
+            class="name-form"
+            aria-label="New chronometer"
+            (submit)="confirmName($event)"
+            (keydown.escape)="cancelName()"
+          >
+            <label for="chronometer-name">Chronometer name</label>
+            <input
+              #nameInput
+              id="chronometer-name"
+              name="chronometerName"
+              type="text"
+              autocomplete="off"
+              required
+              [attr.maxlength]="nameMaxLength"
+              [attr.aria-invalid]="duplicateName()"
+              [attr.aria-describedby]="duplicateName() ? 'chronometer-name-error' : null"
+              [value]="pendingName()"
+              (input)="updateName($event)"
+            />
+            @if (duplicateName()) {
+              <p id="chronometer-name-error" class="name-error" role="alert">
+                This name is already used.
+              </p>
+            }
+            <div class="name-actions">
+              <button type="submit" [disabled]="!canConfirmName()">Add</button>
+              <button class="secondary" type="button" (click)="cancelName()">Cancel</button>
+            </div>
+          </form>
+        } @else {
+          <button
+            class="add-tile"
+            type="button"
+            aria-label="Add chronometer"
+            (click)="requestName()"
+          >
+            <span aria-hidden="true">+</span>
+          </button>
+        }
       </li>
     }
   </ul>
 </section>
-

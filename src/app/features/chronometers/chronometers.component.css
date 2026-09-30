@@ -81,7 +81,7 @@ h2 {
 .time {
   display: block;
   margin-block: 1rem;
-  font-family: ui-monospace, "Cascadia Mono", "Segoe UI Mono", monospace;
+  font-family: ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', monospace;
   font-size: clamp(1.6rem, 5vw, 2.25rem);
   font-variant-numeric: tabular-nums;
   font-weight: 750;
@@ -127,6 +127,65 @@ h2 {
 .add-tile:hover {
   border-color: #10643b;
   background: #eef5f0;
+}
+
+.name-form {
+  display: flex;
+  box-sizing: border-box;
+  height: 100%;
+  min-height: 8rem;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.25rem;
+  border: 0.125rem solid #10643b;
+  border-radius: 0.75rem;
+  background: #fff;
+}
+
+.name-form label {
+  color: #42604d;
+  font-weight: 750;
+}
+
+.name-form input {
+  padding: 0.6rem 0.75rem;
+  border: 0.125rem solid #9cb3a4;
+  border-radius: 0.5rem;
+  font: inherit;
+}
+
+.name-form input:focus-visible {
+  border-color: #10643b;
+  outline: 0.125rem solid #10643b;
+  outline-offset: 0.125rem;
+}
+
+.name-form input[aria-invalid='true'] {
+  border-color: #a51c30;
+}
+
+.name-error {
+  margin: 0;
+  color: #a51c30;
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.name-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.name-actions button {
+  min-width: 0;
+  flex: 1;
+}
+
+.name-actions .secondary {
+  border: 0.125rem solid #10643b;
+  color: #10643b;
+  background: #fff;
 }
 
 @media (max-width: 30rem) {
