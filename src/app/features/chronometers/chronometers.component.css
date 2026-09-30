@@ -92,11 +92,18 @@ h2 {
 }
 
 .card-actions {
+  display: flex;
+  gap: 0.5rem;
   margin-top: auto;
 }
 
-.stop-button {
-  width: 100%;
+.icon-button {
+  display: inline-flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem;
 }
 
 .error {

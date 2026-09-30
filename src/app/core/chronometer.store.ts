@@ -96,6 +96,52 @@ export class ChronometerStore {
       .subscribe(() => this.currentInstant.set(this.clock()));
   }
 
+  startOne(id: string): void {
+    const now = this.clock();
+    this.updateOne(id, now, (entry) =>
+      entry.status === 'stopped' && entry.startInstant === null
+        ? { ...entry, status: 'running', startInstant: now, stopInstant: null }
+        : null,
+    );
+  }
+
+  resumeOne(id: string): void {
+    const now = this.clock();
+    this.updateOne(id, now, (entry) =>
+      entry.status === 'stopped' && entry.startInstant !== null && entry.stopInstant !== null
+        ? {
+            ...entry,
+            status: 'running',
+            startInstant: now - Math.max(0, entry.stopInstant - entry.startInstant),
+            stopInstant: null,
+          }
+        : null,
+    );
+  }
+
+  private updateOne(
+    id: string,
+    now: number,
+    change: (entry: ChronometerState) => ChronometerState | null,
+  ): void {
+    const target = this.entries().find((entry) => entry.id === id);
+    const changed = target ? change(target) : null;
+    if (!changed) {
+      return;
+    }
+
+    this.currentInstant.set(now);
+    this.entries.update((entries) =>
+      Object.freeze(entries.map((entry) => (entry.id === id ? Object.freeze(changed) : entry))),
+    );
+
+    if (!this.tickSubscription || this.tickSubscription.closed) {
+      this.tickSubscription = this.timer(TICK_PERIOD_MILLISECONDS)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => this.currentInstant.set(this.clock()));
+    }
+  }
+
   stop(id: string): void {
     const entries = this.entries();
     if (!entries.some((entry) => entry.id === id && entry.status === 'running')) {

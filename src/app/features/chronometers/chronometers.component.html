@@ -4,15 +4,6 @@
       <p class="eyebrow">Synchronized timing</p>
       <h1 id="chronometers-title">Chronometers</h1>
     </div>
-
-    <button
-      type="button"
-      [disabled]="store.started() || store.chronometers().length === 0"
-      (click)="start()"
-    >
-      Start
-    </button>
-    <button type="button" [disabled]="!store.allStopped()" (click)="resume()">Resume</button>
   </div>
 
   <ul class="chronometer-grid" aria-label="Chronometers">
@@ -33,13 +24,58 @@
           </p>
           <div class="card-actions">
             <button
-              class="stop-button"
+              class="icon-button"
+              type="button"
+              [attr.aria-label]="'Start ' + chronometer.name"
+              [attr.title]="'Start'"
+              [disabled]="chronometer.status !== 'stopped' || chronometer.startInstant !== null"
+              (click)="store.startOne(chronometer.id)"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="20"
+                height="20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </button>
+            <button
+              class="icon-button"
               type="button"
               [attr.aria-label]="'Stop ' + chronometer.name"
+              [attr.title]="'Stop'"
               [disabled]="chronometer.status !== 'running'"
               (click)="stop(chronometer.id)"
             >
-              Stop
+              <svg
+                viewBox="0 0 24 24"
+                width="20"
+                height="20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <rect x="6" y="6" width="12" height="12" rx="1" />
+              </svg>
+            </button>
+            <button
+              class="icon-button"
+              type="button"
+              [attr.aria-label]="'Resume ' + chronometer.name"
+              [attr.title]="'Resume'"
+              [disabled]="chronometer.status !== 'stopped' || chronometer.startInstant === null"
+              (click)="store.resumeOne(chronometer.id)"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="20"
+                height="20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M5 5v14h3V5zM11 5v14l9-7z" />
+              </svg>
             </button>
           </div>
         </article>
