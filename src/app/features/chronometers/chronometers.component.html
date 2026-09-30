@@ -1,0 +1,62 @@
+<section aria-labelledby="chronometers-title">
+  <div class="heading">
+    <div>
+      <p class="eyebrow">Synchronized timing</p>
+      <h1 id="chronometers-title">Chronometers</h1>
+    </div>
+
+    <button
+      type="button"
+      [disabled]="store.started() || store.chronometers().length === 0"
+      (click)="start()"
+    >
+      Start
+    </button>
+    <button type="button" [disabled]="!store.allStopped()" (click)="resume()">Resume</button>
+  </div>
+
+  <ul class="chronometer-grid" aria-label="Chronometers">
+    @for (chronometer of store.chronometers(); track chronometer.id) {
+      <li>
+        <article
+          class="chronometer-card"
+          [class.running]="chronometer.status === 'running'"
+          [attr.id]="chronometer.id"
+        >
+          <h2>Chronometer {{ chronometer.displayNumber }}</h2>
+          <output class="time" [attr.aria-label]="'Elapsed time ' + chronometer.formattedElapsed">
+            {{ chronometer.formattedElapsed }}
+          </output>
+          <p class="status">
+            Status:
+            <strong>{{ chronometer.status === 'running' ? 'Running' : 'Stopped' }}</strong>
+          </p>
+          <div class="card-actions">
+            <button
+              class="stop-button"
+              type="button"
+              [attr.aria-label]="'Stop Chronometer ' + chronometer.displayNumber"
+              [disabled]="chronometer.status !== 'running'"
+              (click)="stop(chronometer.id)"
+            >
+              Stop
+            </button>
+          </div>
+        </article>
+      </li>
+    }
+    @if (!store.started()) {
+      <li>
+        <button
+          class="add-tile"
+          type="button"
+          aria-label="Add chronometer"
+          (click)="add()"
+        >
+          <span aria-hidden="true">+</span>
+        </button>
+      </li>
+    }
+  </ul>
+</section>
+

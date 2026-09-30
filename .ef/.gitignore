@@ -1,0 +1,14 @@
+# OS noise
+.DS_Store
+
+# Screenshots (binary, can be large)
+screenshots/
+
+# Aggregate state (computed, never committed)
+tracks/_aggregate/
+
+# Debug sessions (local investigation, not needed after resolution)
+debug/
+
+# Execution reports (summarized data lives in HISTORY.md and STATE.md)
+tracks/*/reports/

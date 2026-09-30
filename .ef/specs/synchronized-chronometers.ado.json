@@ -1,0 +1,32 @@
+{
+  "spec_id": "synchronized-chronometers",
+  "generated_by": "ef-drafter",
+  "generated_date": "2026-09-17",
+  "ado_tags": [
+    "ef-generated",
+    "ai-assisted"
+  ],
+  "feature": {
+    "title": "Synchronized Chronometers",
+    "description": "Users receive a ready-to-use set of chronometers without configuring each one. A single action starts the full set together, making group timing quick and consistent.",
+    "context": "The new timing application has no chronometer experience yet, so this establishes its first focused interaction."
+  },
+  "stories": [
+    {
+      "day": 1,
+      "title": "Create and start synchronized chronometers",
+      "description": "As a timing operator, I want a ready-made set of chronometers that starts together so that I can time a group consistently.",
+      "acceptance_criteria": [
+        "Initialization displays between 5 and 10 chronometers, inclusive.",
+        "Every displayed chronometer initially shows 00:00.000 and is stopped.",
+        "Activating Start begins every displayed chronometer in the same user action.",
+        "Running chronometers show no visible sequencing caused by startup order.",
+        "Start becomes disabled while all chronometers are running.",
+        "Running times use mm:ss.mmm formatting and refresh once per second.",
+        "In-app navigation preserves the set until a full browser refresh.",
+        "The Start control has an accessible name and works with a keyboard.",
+        "An initialization failure presents a clear error instead of a partial set."
+      ]
+    }
+  ]
+}
