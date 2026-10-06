@@ -28,6 +28,7 @@ h1 {
 
 button {
   min-width: 7rem;
+  min-height: 2.75rem;
   padding: 0.75rem 1.25rem;
   border: 0;
   border-radius: 0.5rem;
@@ -45,7 +46,7 @@ button:disabled {
 
 .chronometer-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
   align-items: stretch;
   gap: 1rem;
   margin: 0;
@@ -196,6 +197,11 @@ h2 {
 }
 
 @media (max-width: 30rem) {
+  .chronometer-card,
+  .name-form {
+    padding: 1rem;
+  }
+
   .heading {
     align-items: stretch;
     flex-direction: column;
