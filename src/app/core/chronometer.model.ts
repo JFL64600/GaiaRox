@@ -14,3 +14,10 @@ export interface ChronometerView extends ChronometerState {
   readonly elapsedMilliseconds: number;
   readonly formattedElapsed: string;
 }
+
+/** Shareable chronometer state exchanged with a remote store. */
+export interface ChronometerSnapshot {
+  readonly entries: readonly ChronometerState[];
+  readonly nextId: number;
+  readonly sharedStart: number | null;
+}

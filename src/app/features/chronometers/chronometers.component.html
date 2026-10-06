@@ -5,7 +5,30 @@
       <h1 id="chronometers-title">Chronometers</h1>
     </div>
   </div>
-
+  @if (syncAvailable) {
+    <form class="sync-form" aria-label="Cloud sync" (submit)="$event.preventDefault(); joinRoom()">
+      @if (store.currentRoom(); as room) {
+        <p>
+          Synced in room <strong>{{ room }}</strong>
+        </p>
+        <button type="button" (click)="copyLink()">Copy share link</button>
+        <button class="secondary" type="button" (click)="leaveRoom()">Leave room</button>
+      } @else {
+        <label for="room-code">Room code</label>
+        <input
+          id="room-code"
+          name="roomCode"
+          type="text"
+          autocomplete="off"
+          maxlength="64"
+          [value]="roomInput()"
+          (input)="updateRoom($event)"
+        />
+        <button type="submit" [disabled]="!roomValid()">Join room</button>
+        <button class="secondary" type="button" (click)="generateRoom()">New code</button>
+      }
+    </form>
+  }
   <ul class="chronometer-grid" aria-label="Chronometers">
     @for (chronometer of store.chronometers(); track chronometer.id) {
       <li>

@@ -1,8 +1,8 @@
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
-import { ChronometerState, ChronometerView } from './chronometer.model';
-import { CHRONOMETER_CLOCK, CHRONOMETER_TIMER } from './chronometer.tokens';
+import { ChronometerSnapshot, ChronometerState, ChronometerView } from './chronometer.model';
+import { CHRONOMETER_CLOCK, CHRONOMETER_REMOTE, CHRONOMETER_TIMER } from './chronometer.tokens';
 
 const TICK_PERIOD_MILLISECONDS = 1_000;
 
@@ -11,12 +11,15 @@ export class ChronometerStore {
   private readonly clock = inject(CHRONOMETER_CLOCK);
   private readonly timer = inject(CHRONOMETER_TIMER);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly remote = inject(CHRONOMETER_REMOTE);
 
   private readonly entries = signal<readonly ChronometerState[]>(Object.freeze([]));
   private readonly nextId = signal(1);
   private readonly sharedStart = signal<number | null>(null);
   private readonly currentInstant = signal(0);
   private tickSubscription: Subscription | null = null;
+  private readonly roomId = signal<string | null>(null);
+  private disconnect: (() => void) | null = null;
 
   readonly started = computed(() => this.sharedStart() !== null);
   readonly running = computed(() => this.entries().some(({ status }) => status === 'running'));
@@ -46,6 +49,63 @@ export class ChronometerStore {
     );
   });
 
+  /** Joins a shared room: remote state replaces local state and later changes sync both ways. */
+  joinRoom(roomId: string): void {
+    this.leaveRoom();
+    this.roomId.set(roomId);
+    this.disconnect = this.remote.connect(roomId, (snapshot) => this.applyRemote(snapshot));
+  }
+
+  leaveRoom(): void {
+    this.disconnect?.();
+    this.disconnect = null;
+    this.roomId.set(null);
+  }
+
+  readonly currentRoom = this.roomId.asReadonly();
+
+  private applyRemote(snapshot: ChronometerSnapshot | null): void {
+    if (snapshot === null) {
+      this.publish();
+      return;
+    }
+
+    this.nextId.set(snapshot.nextId);
+    this.sharedStart.set(snapshot.sharedStart);
+    this.currentInstant.set(this.clock());
+    this.entries.set(Object.freeze(snapshot.entries.map((entry) => Object.freeze({ ...entry }))));
+    this.syncTicking();
+  }
+
+  private publish(): void {
+    const roomId = this.roomId();
+    if (roomId === null) {
+      return;
+    }
+
+    this.remote.push(roomId, {
+      entries: this.entries(),
+      nextId: this.nextId(),
+      sharedStart: this.sharedStart(),
+    });
+  }
+
+  private ensureTicking(): void {
+    if (!this.tickSubscription || this.tickSubscription.closed) {
+      this.tickSubscription = this.timer(TICK_PERIOD_MILLISECONDS)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => this.currentInstant.set(this.clock()));
+    }
+  }
+
+  private syncTicking(): void {
+    if (this.entries().some(({ status }) => status === 'running')) {
+      this.ensureTicking();
+    } else {
+      this.tickSubscription?.unsubscribe();
+      this.tickSubscription = null;
+    }
+  }
   add(name?: string): void {
     if (this.started()) {
       return;
@@ -68,6 +128,7 @@ export class ChronometerStore {
         }),
       ]),
     );
+    this.publish();
   }
 
   start(): void {
@@ -90,10 +151,8 @@ export class ChronometerStore {
     this.currentInstant.set(startInstant);
     this.sharedStart.set(startInstant);
     this.entries.set(runningEntries);
-
-    this.tickSubscription = this.timer(TICK_PERIOD_MILLISECONDS)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.currentInstant.set(this.clock()));
+    this.ensureTicking();
+    this.publish();
   }
 
   startOne(id: string): void {
@@ -135,11 +194,8 @@ export class ChronometerStore {
       Object.freeze(entries.map((entry) => (entry.id === id ? Object.freeze(changed) : entry))),
     );
 
-    if (!this.tickSubscription || this.tickSubscription.closed) {
-      this.tickSubscription = this.timer(TICK_PERIOD_MILLISECONDS)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe(() => this.currentInstant.set(this.clock()));
-    }
+    this.ensureTicking();
+    this.publish();
   }
 
   stop(id: string): void {
@@ -170,10 +226,8 @@ export class ChronometerStore {
 
     this.entries.set(sortedEntries);
 
-    if (!sortedEntries.some(({ status }) => status === 'running')) {
-      this.tickSubscription?.unsubscribe();
-      this.tickSubscription = null;
-    }
+    this.syncTicking();
+    this.publish();
   }
 
   resume(): void {
@@ -200,10 +254,8 @@ export class ChronometerStore {
 
     this.currentInstant.set(now);
     this.entries.set(resumedEntries);
-
-    this.tickSubscription = this.timer(TICK_PERIOD_MILLISECONDS)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.currentInstant.set(this.clock()));
+    this.ensureTicking();
+    this.publish();
   }
 }
 

@@ -9,6 +9,10 @@ import {
   viewChild,
 } from '@angular/core';
 import { ChronometerStore } from '../../core/chronometer.store';
+import { FIREBASE_OPTIONS } from '../../core/firebase.token';
+
+const ROOM_STORAGE_KEY = 'gaiarox.room';
+const ROOM_PATTERN = /^[A-Za-z0-9_-]{6,64}$/;
 
 export const CHRONOMETER_NAME_MAX_LENGTH = 40;
 
@@ -22,6 +26,9 @@ export class ChronometersComponent {
   private readonly injector = inject(Injector);
   private readonly nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
 
+  protected readonly syncAvailable = inject(FIREBASE_OPTIONS) !== null;
+  protected readonly roomInput = signal('');
+  protected readonly roomValid = computed(() => ROOM_PATTERN.test(this.roomInput().trim()));
   protected readonly nameMaxLength = CHRONOMETER_NAME_MAX_LENGTH;
   protected readonly naming = signal(false);
   protected readonly pendingName = signal('');
@@ -36,6 +43,48 @@ export class ChronometersComponent {
   protected readonly canConfirmName = computed(
     () => this.trimmedName() !== '' && !this.duplicateName(),
   );
+
+  constructor() {
+    if (!this.syncAvailable) {
+      return;
+    }
+
+    const fromUrl = new URLSearchParams(globalThis.location?.search).get('room');
+    const room = fromUrl ?? globalThis.localStorage?.getItem(ROOM_STORAGE_KEY);
+    if (room && ROOM_PATTERN.test(room)) {
+      this.roomInput.set(room);
+      this.joinRoom();
+    }
+  }
+
+  protected updateRoom(event: Event): void {
+    this.roomInput.set((event.target as HTMLInputElement).value);
+  }
+
+  protected generateRoom(): void {
+    this.roomInput.set(crypto.randomUUID().replaceAll('-', '').slice(0, 12));
+  }
+
+  protected joinRoom(): void {
+    if (!this.roomValid()) {
+      return;
+    }
+
+    const room = this.roomInput().trim();
+    globalThis.localStorage?.setItem(ROOM_STORAGE_KEY, room);
+    this.store.joinRoom(room);
+  }
+
+  protected leaveRoom(): void {
+    globalThis.localStorage?.removeItem(ROOM_STORAGE_KEY);
+    this.store.leaveRoom();
+  }
+
+  protected async copyLink(): Promise<void> {
+    const url = new URL(globalThis.location.href);
+    url.searchParams.set('room', this.store.currentRoom() ?? '');
+    await navigator.clipboard?.writeText(url.toString());
+  }
 
   protected requestName(): void {
     this.pendingName.set('');

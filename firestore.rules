@@ -1,0 +1,13 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /rooms/{roomId} {
+      allow read: if roomId.size() >= 6 && roomId.size() <= 64;
+      allow write: if roomId.size() >= 6 && roomId.size() <= 64
+        && request.resource.data.keys().hasOnly(['entries', 'nextId', 'sharedStart'])
+        && request.resource.data.entries is list
+        && request.resource.data.entries.size() <= 100
+        && request.resource.data.nextId is int;
+    }
+  }
+}
