@@ -1,10 +1,4 @@
-<section aria-labelledby="chronometers-title">
-  <div class="heading">
-    <div>
-      <p class="eyebrow">Synchronized timing</p>
-      <h1 id="chronometers-title">Chronometers</h1>
-    </div>
-  </div>
+<section aria-label="Chronometers">
   @if (syncAvailable) {
     <form class="sync-form" aria-label="Cloud sync" (submit)="$event.preventDefault(); joinRoom()">
       @if (store.currentRoom(); as room) {

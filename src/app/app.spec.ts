@@ -24,7 +24,7 @@ describe('App', () => {
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('.brand')?.textContent).toContain('GaiaRox');
-    expect(compiled.querySelectorAll('nav a')).toHaveLength(1);
+    expect(compiled.querySelector('nav')).toBeNull();
   });
 
   it('preserves the root chronometer set across in-app navigation', async () => {
