@@ -8,14 +8,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
-  padding: 1rem clamp(1rem, 4vw, 3rem);
+  padding: 1.5rem clamp(1rem, 4vw, 3rem);
   color: #fff;
   background: #173f2a;
 }
 
 .brand {
   color: inherit;
-  font-size: 1.15rem;
+  font-size: 1.5rem;
   font-weight: 750;
   text-decoration: none;
 }
