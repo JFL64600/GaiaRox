@@ -1,3 +1,4 @@
+import { resetLocalStorage } from './testing-storage';
 import { createEnvironmentInjector, EnvironmentInjector } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Subject } from 'rxjs';
@@ -13,6 +14,7 @@ interface StoreHarness {
 }
 
 function createHarness(): StoreHarness {
+  resetLocalStorage();
   let now = 0;
   let clockCallCount = 0;
   let timerCallCount = 0;
@@ -50,6 +52,28 @@ function createHarness(): StoreHarness {
 
 describe('ChronometerStore', () => {
   afterEach(() => TestBed.resetTestingModule());
+
+  describe('local persistence', () => {
+    it('restores state after a reload', () => {
+      const first = createHarness();
+      first.setNow(5_000);
+      first.store.add('A');
+      first.store.start();
+      TestBed.resetTestingModule();
+
+      TestBed.configureTestingModule({
+        providers: [
+          { provide: CHRONOMETER_CLOCK, useValue: () => 8_000 },
+          { provide: CHRONOMETER_TIMER, useValue: () => new Subject<void>() },
+        ],
+      });
+      const store = TestBed.inject(ChronometerStore);
+
+      expect(store.started()).toBe(true);
+      expect(store.startedAtGmt()).toBe('Thu, 01 Jan 1970 00:00:05 GMT');
+      expect(store.chronometers()[0].elapsedMilliseconds).toBe(3_000);
+    });
+  });
 
   it('starts with an empty chronometer collection', () => {
     const { store } = createHarness();
@@ -439,9 +463,11 @@ describe('ChronometerStore', () => {
   });
 
   it('creates an independent, empty collection for a fresh root injector lifetime', () => {
+    resetLocalStorage();
     const root = TestBed.inject(EnvironmentInjector);
     const firstLifetime = createEnvironmentInjector([ChronometerStore], root);
     const secondLifetime = createEnvironmentInjector([ChronometerStore], root);
+    secondLifetime.get(ChronometerStore);
 
     firstLifetime.get(ChronometerStore).add();
 

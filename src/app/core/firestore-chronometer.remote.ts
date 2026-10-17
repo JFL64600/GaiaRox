@@ -73,6 +73,7 @@ export class FirestoreChronometerRemote implements ChronometerRemote {
           entries: snapshot.entries,
           nextId: snapshot.nextId,
           sharedStart: snapshot.sharedStart,
+          startedAtGmt: snapshot.startedAtGmt,
         }),
       )
       .catch(onError);

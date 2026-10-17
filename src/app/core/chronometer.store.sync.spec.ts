@@ -1,3 +1,4 @@
+import { resetLocalStorage } from './testing-storage';
 import { TestBed } from '@angular/core/testing';
 import { NEVER } from 'rxjs';
 import { ChronometerSnapshot } from './chronometer.model';
@@ -16,6 +17,7 @@ describe('ChronometerStore cloud sync', () => {
   let store: ChronometerStore;
 
   beforeEach(() => {
+    resetLocalStorage();
     pushes = [];
     disconnected = false;
     emit = () => undefined;
@@ -51,6 +53,8 @@ describe('ChronometerStore cloud sync', () => {
     expect(pushes.at(-1)?.roomId).toBe('room-123');
     expect(pushes.at(-1)?.snapshot.entries[0].status).toBe('running');
     expect(pushes.at(-1)?.snapshot.sharedStart).toBe(5_000);
+    expect(pushes.at(-1)?.snapshot.startedAtGmt).toBe('Thu, 01 Jan 1970 00:00:05 GMT');
+    expect(store.startedAtGmt()).toBe('Thu, 01 Jan 1970 00:00:05 GMT');
   });
 
   it('applies remote state without echoing it back', () => {
@@ -58,6 +62,7 @@ describe('ChronometerStore cloud sync', () => {
     emit({
       nextId: 3,
       sharedStart: 1_000,
+      startedAtGmt: null,
       entries: [
         {
           id: 'chronometer-1',

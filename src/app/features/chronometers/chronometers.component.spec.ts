@@ -1,3 +1,4 @@
+import { resetLocalStorage } from '../../core/testing-storage';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Subject } from 'rxjs';
 import { I18n } from '../../core/i18n.service';
@@ -12,6 +13,7 @@ describe('ChronometersComponent', () => {
   let now: number;
 
   async function configure(): Promise<void> {
+    resetLocalStorage();
     now = 0;
     tick = new Subject<void>();
 

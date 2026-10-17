@@ -1,10 +1,12 @@
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
-import { ChronometerSnapshot, ChronometerState, ChronometerView } from './chronometer.model';
+import { ChronometerSnapshot, ChronometerState, ChronometerView, parseSnapshot } from './chronometer.model';
 import { I18n } from './i18n.service';
 import { CHRONOMETER_CLOCK, CHRONOMETER_REMOTE, CHRONOMETER_TIMER } from './chronometer.tokens';
 
+const LOCAL_STORAGE_KEY = 'gaiarox.chronometers';
+export { LOCAL_STORAGE_KEY as CHRONOMETER_LOCAL_STORAGE_KEY };
 const TICK_PERIOD_MILLISECONDS = 1_000;
 
 @Injectable({ providedIn: 'root' })
@@ -18,6 +20,7 @@ export class ChronometerStore {
   private readonly entries = signal<readonly ChronometerState[]>(Object.freeze([]));
   private readonly nextId = signal(1);
   private readonly sharedStart = signal<number | null>(null);
+  private readonly startedAtGmtState = signal<string | null>(null);
   private readonly currentInstant = signal(0);
   private tickSubscription: Subscription | null = null;
   private readonly roomId = signal<string | null>(null);
@@ -26,6 +29,8 @@ export class ChronometerStore {
   private destroyed = false;
   private joinToken = 0;
 
+  /** Complete date of the last start click, in GMT format. */
+  readonly startedAtGmt = this.startedAtGmtState.asReadonly();
   readonly started = computed(() => this.sharedStart() !== null);
   readonly running = computed(() => this.entries().some(({ status }) => status === 'running'));
   readonly allStopped = computed(
@@ -108,10 +113,40 @@ export class ChronometerStore {
   readonly syncError = this.syncErrorState.asReadonly();
 
   constructor() {
+    this.restoreLocal();
     this.destroyRef.onDestroy(() => {
       this.destroyed = true;
       this.leaveRoom();
     });
+  }
+
+  private restoreLocal(): void {
+    let snapshot: ChronometerSnapshot | null = null;
+    try {
+      const raw = globalThis.localStorage?.getItem(LOCAL_STORAGE_KEY);
+      snapshot = raw ? parseSnapshot(JSON.parse(raw)) : null;
+    } catch {
+      snapshot = null;
+    }
+    if (snapshot !== null) {
+      this.applyRemote(snapshot);
+    }
+  }
+
+  private saveLocal(): void {
+    try {
+      globalThis.localStorage?.setItem(
+        LOCAL_STORAGE_KEY,
+        JSON.stringify({
+          entries: this.entries(),
+          nextId: this.nextId(),
+          sharedStart: this.sharedStart(),
+          startedAtGmt: this.startedAtGmtState(),
+        }),
+      );
+    } catch {
+      // Storage may be unavailable or full; persistence is best effort.
+    }
   }
 
   private applyRemote(snapshot: ChronometerSnapshot | null): void {
@@ -122,12 +157,14 @@ export class ChronometerStore {
 
     this.nextId.set(snapshot.nextId);
     this.sharedStart.set(snapshot.sharedStart);
+    this.startedAtGmtState.set(snapshot.startedAtGmt ?? null);
     this.currentInstant.set(this.now());
     this.entries.set(Object.freeze(snapshot.entries.map((entry) => Object.freeze({ ...entry }))));
     this.syncTicking();
   }
 
   private publish(): void {
+    this.saveLocal();
     const roomId = this.roomId();
     if (roomId === null) {
       return;
@@ -139,6 +176,7 @@ export class ChronometerStore {
         entries: this.entries(),
         nextId: this.nextId(),
         sharedStart: this.sharedStart(),
+        startedAtGmt: this.startedAtGmtState(),
       },
       () => this.syncErrorState.set(true),
     );
@@ -208,6 +246,7 @@ export class ChronometerStore {
 
     this.currentInstant.set(startInstant);
     this.sharedStart.set(startInstant);
+    this.startedAtGmtState.set(new Date(startInstant).toUTCString());
     this.entries.set(runningEntries);
     this.ensureTicking();
     this.publish();
