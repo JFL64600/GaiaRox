@@ -7,7 +7,13 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['entries', 'nextId', 'sharedStart'])
         && request.resource.data.entries is list
         && request.resource.data.entries.size() <= 100
-        && request.resource.data.nextId is int;
+        && request.resource.data.nextId is int
+        && (request.resource.data.sharedStart == null || request.resource.data.sharedStart is number);
+    }
+
+    // Throwaway docs used to measure the offset between a device clock and the server clock.
+    match /clock/{id} {
+      allow create, read: if id.size() >= 6 && id.size() <= 64;
     }
   }
 }

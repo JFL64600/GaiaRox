@@ -17,8 +17,14 @@ export const CHRONOMETER_TIMER = new InjectionToken<ChronometerTimer>('CHRONOMET
 
 export interface ChronometerRemote {
   /** Subscribes to a room; `null` means the room has no data yet. Returns an unsubscribe function. */
-  connect(roomId: string, onSnapshot: (snapshot: ChronometerSnapshot | null) => void): () => void;
-  push(roomId: string, snapshot: ChronometerSnapshot): void;
+  connect(
+    roomId: string,
+    onSnapshot: (snapshot: ChronometerSnapshot | null) => void,
+    onError?: (error: unknown) => void,
+  ): () => void;
+  push(roomId: string, snapshot: ChronometerSnapshot, onError?: (error: unknown) => void): void;
+  /** Milliseconds to add to the local clock to match the shared server clock. */
+  measureClockOffset?(): Promise<number>;
 }
 
 export const CHRONOMETER_REMOTE = new InjectionToken<ChronometerRemote>('CHRONOMETER_REMOTE', {

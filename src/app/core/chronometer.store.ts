@@ -22,6 +22,9 @@ export class ChronometerStore {
   private tickSubscription: Subscription | null = null;
   private readonly roomId = signal<string | null>(null);
   private disconnect: (() => void) | null = null;
+  private clockOffset = 0;
+  private destroyed = false;
+  private joinToken = 0;
 
   readonly started = computed(() => this.sharedStart() !== null);
   readonly running = computed(() => this.entries().some(({ status }) => status === 'running'));
@@ -55,16 +58,61 @@ export class ChronometerStore {
   joinRoom(roomId: string): void {
     this.leaveRoom();
     this.roomId.set(roomId);
-    this.disconnect = this.remote.connect(roomId, (snapshot) => this.applyRemote(snapshot));
+    const token = this.joinToken;
+    const connect = (): void => {
+      if (token !== this.joinToken) {
+        return;
+      }
+      this.disconnect = this.remote.connect(
+        roomId,
+        (snapshot) => {
+          this.syncErrorState.set(false);
+          this.applyRemote(snapshot);
+        },
+        () => this.syncErrorState.set(true),
+      );
+    };
+
+    if (!this.remote.measureClockOffset) {
+      connect();
+      return;
+    }
+
+    // Align this device's clock with the shared server clock before applying synced instants.
+    this.remote
+      .measureClockOffset()
+      .catch(() => 0)
+      .then((offset) => {
+        if (token === this.joinToken) {
+          this.clockOffset = offset;
+        }
+        connect();
+      });
   }
 
   leaveRoom(): void {
+    this.joinToken++;
     this.disconnect?.();
     this.disconnect = null;
     this.roomId.set(null);
+    this.syncErrorState.set(false);
+    this.clockOffset = 0;
   }
 
+  private now(): number {
+    return this.clock() + this.clockOffset;
+  }
   readonly currentRoom = this.roomId.asReadonly();
+  private readonly syncErrorState = signal(false);
+  /** True when the last sync attempt failed or the room held invalid data. */
+  readonly syncError = this.syncErrorState.asReadonly();
+
+  constructor() {
+    this.destroyRef.onDestroy(() => {
+      this.destroyed = true;
+      this.leaveRoom();
+    });
+  }
 
   private applyRemote(snapshot: ChronometerSnapshot | null): void {
     if (snapshot === null) {
@@ -74,7 +122,7 @@ export class ChronometerStore {
 
     this.nextId.set(snapshot.nextId);
     this.sharedStart.set(snapshot.sharedStart);
-    this.currentInstant.set(this.clock());
+    this.currentInstant.set(this.now());
     this.entries.set(Object.freeze(snapshot.entries.map((entry) => Object.freeze({ ...entry }))));
     this.syncTicking();
   }
@@ -85,18 +133,25 @@ export class ChronometerStore {
       return;
     }
 
-    this.remote.push(roomId, {
-      entries: this.entries(),
-      nextId: this.nextId(),
-      sharedStart: this.sharedStart(),
-    });
+    this.remote.push(
+      roomId,
+      {
+        entries: this.entries(),
+        nextId: this.nextId(),
+        sharedStart: this.sharedStart(),
+      },
+      () => this.syncErrorState.set(true),
+    );
   }
 
   private ensureTicking(): void {
+    if (this.destroyed) {
+      return;
+    }
     if (!this.tickSubscription || this.tickSubscription.closed) {
       this.tickSubscription = this.timer(TICK_PERIOD_MILLISECONDS)
         .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe(() => this.currentInstant.set(this.clock()));
+        .subscribe(() => this.currentInstant.set(this.now()));
     }
   }
 
@@ -139,7 +194,7 @@ export class ChronometerStore {
       return;
     }
 
-    const startInstant = this.clock();
+    const startInstant = this.now();
     const runningEntries = Object.freeze(
       this.entries().map((entry) =>
         Object.freeze({
@@ -159,7 +214,7 @@ export class ChronometerStore {
   }
 
   startOne(id: string): void {
-    const now = this.clock();
+    const now = this.now();
     this.updateOne(id, now, (entry) =>
       entry.status === 'stopped' && entry.startInstant === null
         ? { ...entry, status: 'running', startInstant: now, stopInstant: null }
@@ -168,7 +223,7 @@ export class ChronometerStore {
   }
 
   resumeOne(id: string): void {
-    const now = this.clock();
+    const now = this.now();
     this.updateOne(id, now, (entry) =>
       entry.status === 'stopped' && entry.startInstant !== null && entry.stopInstant !== null
         ? {
@@ -207,7 +262,7 @@ export class ChronometerStore {
       return;
     }
 
-    const stopInstant = this.clock();
+    const stopInstant = this.now();
     const stoppedEntries = entries.map((entry) =>
       entry.id === id
         ? Object.freeze({
@@ -238,7 +293,7 @@ export class ChronometerStore {
       return;
     }
 
-    const now = this.clock();
+    const now = this.now();
     const resumedEntries = Object.freeze(
       this.entries().map((entry) => {
         const frozenElapsed =

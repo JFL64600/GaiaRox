@@ -9,6 +9,9 @@
         <p>
           {{ i18n.t('sync.inRoom') }} <strong>{{ room }}</strong>
         </p>
+        @if (store.syncError()) {
+          <p role="alert">{{ i18n.t('sync.error') }}</p>
+        }
         <button type="button" (click)="copyLink()">{{ i18n.t('sync.copyLink') }}</button>
         <button class="secondary" type="button" (click)="leaveRoom()">
           {{ i18n.t('sync.leave') }}
