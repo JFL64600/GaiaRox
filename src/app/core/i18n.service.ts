@@ -3,6 +3,7 @@ import { Injectable, signal } from '@angular/core';
 export type Language = 'fr' | 'en' | 'eu';
 
 export const LANGUAGES: readonly Language[] = ['fr', 'en', 'eu'];
+export const LANGUAGE_LABELS: Record<Language, string> = { fr: 'FR', en: 'EN', eu: 'EUS' };
 export const DEFAULT_LANGUAGE: Language = 'fr';
 const LANGUAGE_STORAGE_KEY = 'gaiarox.language';
 

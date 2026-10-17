@@ -54,7 +54,9 @@ main {
 }
 
 .language-switch button {
+  min-width: 3rem;
   padding: 0.25rem 0.6rem;
+  text-align: center;
   color: #dceae0;
   font: inherit;
   font-weight: 600;

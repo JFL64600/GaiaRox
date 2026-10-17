@@ -8,7 +8,7 @@
         [attr.aria-pressed]="i18n.language() === language"
         (click)="i18n.setLanguage(language)"
       >
-        {{ language.toUpperCase() }}
+        {{ languageLabels[language] }}
       </button>
     }
   </div>
