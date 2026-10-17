@@ -1,14 +1,20 @@
-<section aria-label="Chronometers">
+<section [attr.aria-label]="i18n.t('chronometers.label')">
   @if (syncAvailable) {
-    <form class="sync-form" aria-label="Cloud sync" (submit)="$event.preventDefault(); joinRoom()">
+    <form
+      class="sync-form"
+      [attr.aria-label]="i18n.t('sync.label')"
+      (submit)="$event.preventDefault(); joinRoom()"
+    >
       @if (store.currentRoom(); as room) {
         <p>
-          Synced in room <strong>{{ room }}</strong>
+          {{ i18n.t('sync.inRoom') }} <strong>{{ room }}</strong>
         </p>
-        <button type="button" (click)="copyLink()">Copy share link</button>
-        <button class="secondary" type="button" (click)="leaveRoom()">Leave room</button>
+        <button type="button" (click)="copyLink()">{{ i18n.t('sync.copyLink') }}</button>
+        <button class="secondary" type="button" (click)="leaveRoom()">
+          {{ i18n.t('sync.leave') }}
+        </button>
       } @else {
-        <label for="room-code">Room code</label>
+        <label for="room-code">{{ i18n.t('sync.roomCode') }}</label>
         <input
           id="room-code"
           name="roomCode"
@@ -18,12 +24,14 @@
           [value]="roomInput()"
           (input)="updateRoom($event)"
         />
-        <button type="submit" [disabled]="!roomValid()">Join room</button>
-        <button class="secondary" type="button" (click)="generateRoom()">New code</button>
+        <button type="submit" [disabled]="!roomValid()">{{ i18n.t('sync.join') }}</button>
+        <button class="secondary" type="button" (click)="generateRoom()">
+          {{ i18n.t('sync.newCode') }}
+        </button>
       }
     </form>
   }
-  <ul class="chronometer-grid" aria-label="Chronometers">
+  <ul class="chronometer-grid" [attr.aria-label]="i18n.t('chronometers.label')">
     @for (chronometer of store.chronometers(); track chronometer.id) {
       <li>
         <article
@@ -32,19 +40,28 @@
           [attr.id]="chronometer.id"
         >
           <h2>{{ chronometer.name }}</h2>
-          <output class="time" [attr.aria-label]="'Elapsed time ' + chronometer.formattedElapsed">
+          <output
+            class="time"
+            [attr.aria-label]="
+              i18n.t('chronometer.elapsed', { time: chronometer.formattedElapsed })
+            "
+          >
             {{ chronometer.formattedElapsed }}
           </output>
           <p class="status">
-            Status:
-            <strong>{{ chronometer.status === 'running' ? 'Running' : 'Stopped' }}</strong>
+            {{ i18n.t('chronometer.status') }}
+            <strong>{{
+              i18n.t(
+                chronometer.status === 'running' ? 'chronometer.running' : 'chronometer.stopped'
+              )
+            }}</strong>
           </p>
           <div class="card-actions">
             <button
               class="icon-button"
               type="button"
-              [attr.aria-label]="'Start ' + chronometer.name"
-              [attr.title]="'Start'"
+              [attr.aria-label]="i18n.t('chronometer.startNamed', { name: chronometer.name })"
+              [attr.title]="i18n.t('chronometer.start')"
               [disabled]="chronometer.status !== 'stopped' || chronometer.startInstant !== null"
               (click)="store.startOne(chronometer.id)"
             >
@@ -61,8 +78,8 @@
             <button
               class="icon-button"
               type="button"
-              [attr.aria-label]="'Stop ' + chronometer.name"
-              [attr.title]="'Stop'"
+              [attr.aria-label]="i18n.t('chronometer.stopNamed', { name: chronometer.name })"
+              [attr.title]="i18n.t('chronometer.stop')"
               [disabled]="chronometer.status !== 'running'"
               (click)="stop(chronometer.id)"
             >
@@ -79,8 +96,8 @@
             <button
               class="icon-button"
               type="button"
-              [attr.aria-label]="'Resume ' + chronometer.name"
-              [attr.title]="'Resume'"
+              [attr.aria-label]="i18n.t('chronometer.resumeNamed', { name: chronometer.name })"
+              [attr.title]="i18n.t('chronometer.resume')"
               [disabled]="chronometer.status !== 'stopped' || chronometer.startInstant === null"
               (click)="store.resumeOne(chronometer.id)"
             >
@@ -103,11 +120,11 @@
         @if (naming()) {
           <form
             class="name-form"
-            aria-label="New chronometer"
+            [attr.aria-label]="i18n.t('chronometer.new')"
             (submit)="confirmName($event)"
             (keydown.escape)="cancelName()"
           >
-            <label for="chronometer-name">Chronometer name</label>
+            <label for="chronometer-name">{{ i18n.t('chronometer.name') }}</label>
             <input
               #nameInput
               id="chronometer-name"
@@ -123,19 +140,23 @@
             />
             @if (duplicateName()) {
               <p id="chronometer-name-error" class="name-error" role="alert">
-                This name is already used.
+                {{ i18n.t('chronometer.nameUsed') }}
               </p>
             }
             <div class="name-actions">
-              <button type="submit" [disabled]="!canConfirmName()">Add</button>
-              <button class="secondary" type="button" (click)="cancelName()">Cancel</button>
+              <button type="submit" [disabled]="!canConfirmName()">
+                {{ i18n.t('common.add') }}
+              </button>
+              <button class="secondary" type="button" (click)="cancelName()">
+                {{ i18n.t('common.cancel') }}
+              </button>
             </div>
           </form>
         } @else {
           <button
             class="add-tile"
             type="button"
-            aria-label="Add chronometer"
+            [attr.aria-label]="i18n.t('chronometer.add')"
             (click)="requestName()"
           >
             <span aria-hidden="true">+</span>

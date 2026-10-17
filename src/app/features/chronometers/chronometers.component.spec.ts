@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Subject } from 'rxjs';
+import { I18n } from '../../core/i18n.service';
 import { ChronometerStore } from '../../core/chronometer.store';
 import { CHRONOMETER_CLOCK, CHRONOMETER_TIMER } from '../../core/chronometer.tokens';
 import { ChronometersComponent } from './chronometers.component';
@@ -22,6 +23,7 @@ describe('ChronometersComponent', () => {
       ],
     }).compileComponents();
 
+    TestBed.inject(I18n).language.set('en');
     store = TestBed.inject(ChronometerStore);
     fixture = TestBed.createComponent(ChronometersComponent);
     await fixture.whenStable();

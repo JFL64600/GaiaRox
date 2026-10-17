@@ -2,6 +2,7 @@ import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 import { ChronometerSnapshot, ChronometerState, ChronometerView } from './chronometer.model';
+import { I18n } from './i18n.service';
 import { CHRONOMETER_CLOCK, CHRONOMETER_REMOTE, CHRONOMETER_TIMER } from './chronometer.tokens';
 
 const TICK_PERIOD_MILLISECONDS = 1_000;
@@ -12,6 +13,7 @@ export class ChronometerStore {
   private readonly timer = inject(CHRONOMETER_TIMER);
   private readonly destroyRef = inject(DestroyRef);
   private readonly remote = inject(CHRONOMETER_REMOTE);
+  private readonly i18n = inject(I18n);
 
   private readonly entries = signal<readonly ChronometerState[]>(Object.freeze([]));
   private readonly nextId = signal(1);
@@ -113,7 +115,8 @@ export class ChronometerStore {
 
     const displayNumber = this.nextId();
     const id = `chronometer-${displayNumber}`;
-    const chronometerName = name?.trim() || `Chronometer ${displayNumber}`;
+    const chronometerName =
+      name?.trim() || this.i18n.t('chronometer.defaultName', { n: displayNumber });
     this.nextId.update((value) => value + 1);
     this.entries.update((entries) =>
       Object.freeze([

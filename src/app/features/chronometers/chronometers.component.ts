@@ -9,6 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { ChronometerStore } from '../../core/chronometer.store';
+import { I18n } from '../../core/i18n.service';
 import { FIREBASE_OPTIONS } from '../../core/firebase.token';
 
 const ROOM_STORAGE_KEY = 'gaiarox.room';
@@ -23,6 +24,7 @@ export const CHRONOMETER_NAME_MAX_LENGTH = 40;
 })
 export class ChronometersComponent {
   protected readonly store = inject(ChronometerStore);
+  protected readonly i18n = inject(I18n);
   private readonly injector = inject(Injector);
   private readonly nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
 

@@ -48,3 +48,23 @@ main {
     flex-direction: column;
   }
 }
+.language-switch {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.language-switch button {
+  padding: 0.25rem 0.6rem;
+  color: #dceae0;
+  font: inherit;
+  font-weight: 600;
+  background: transparent;
+  border: 1px solid #dceae0;
+  border-radius: 0.4rem;
+  cursor: pointer;
+}
+
+.language-switch button[aria-pressed='true'] {
+  color: #173f2a;
+  background: #fff;
+}

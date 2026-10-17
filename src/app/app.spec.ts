@@ -55,4 +55,3 @@ describe('App', () => {
     expect(returnedRenderedIds).toEqual(initialRenderedIds);
   });
 });
-
