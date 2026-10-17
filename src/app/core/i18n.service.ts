@@ -2,9 +2,10 @@ import { Injectable, signal } from '@angular/core';
 
 export type Language = 'fr' | 'en' | 'eu';
 
-export const LANGUAGES: readonly Language[] = ['eu', 'fr', 'en'];
+/** Languages offered in the switcher; English texts are kept but hidden. */
+export const LANGUAGES: readonly Language[] = ['eu', 'fr'];
 export const LANGUAGE_LABELS: Record<Language, string> = { fr: 'FR', en: 'EN', eu: 'EUS' };
-export const DEFAULT_LANGUAGE: Language = 'fr';
+export const DEFAULT_LANGUAGE: Language = 'eu';
 const LANGUAGE_STORAGE_KEY = 'gaiarox.language';
 
 const MESSAGES = {
@@ -102,9 +103,10 @@ export class I18n {
 
   constructor() {
     const stored = globalThis.localStorage?.getItem(LANGUAGE_STORAGE_KEY);
-    if (stored === 'fr' || stored === 'en' || stored === 'eu') {
-      this.language.set(stored);
-      this.syncDocument(stored);
+    const language = LANGUAGES.find((candidate) => candidate === stored);
+    if (language) {
+      this.language.set(language);
+      this.syncDocument(language);
     } else {
       this.syncDocument(DEFAULT_LANGUAGE);
     }
