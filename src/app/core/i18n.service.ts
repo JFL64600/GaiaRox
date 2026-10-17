@@ -1,8 +1,8 @@
 import { Injectable, signal } from '@angular/core';
 
-export type Language = 'fr' | 'en';
+export type Language = 'fr' | 'en' | 'eu';
 
-export const LANGUAGES: readonly Language[] = ['fr', 'en'];
+export const LANGUAGES: readonly Language[] = ['fr', 'en', 'eu'];
 export const DEFAULT_LANGUAGE: Language = 'fr';
 const LANGUAGE_STORAGE_KEY = 'gaiarox.language';
 
@@ -63,6 +63,34 @@ const MESSAGES = {
     'sync.join': 'Join room',
     'sync.newCode': 'New code',
   },
+  eu: {
+    'language.label': 'Hizkuntza',
+    'chronometers.label': 'Kronometroak',
+    'chronometer.defaultName': '{n}. kronometroa',
+    'chronometer.elapsed': 'Igarotako denbora {time}',
+    'chronometer.status': 'Egoera:',
+    'chronometer.running': 'Martxan',
+    'chronometer.stopped': 'Geldituta',
+    'chronometer.start': 'Hasi',
+    'chronometer.stop': 'Gelditu',
+    'chronometer.resume': 'Berrekin',
+    'chronometer.startNamed': 'Hasi {name}',
+    'chronometer.stopNamed': 'Gelditu {name}',
+    'chronometer.resumeNamed': 'Berrekin {name}',
+    'chronometer.add': 'Gehitu kronometroa',
+    'chronometer.new': 'Kronometro berria',
+    'chronometer.name': 'Taldearen izena',
+    'chronometer.nameUsed': 'Izen hau jada erabilita dago.',
+    'common.add': 'Gehitu',
+    'common.cancel': 'Utzi',
+    'sync.label': 'Hodeiko sinkronizazioa',
+    'sync.inRoom': 'Gelan sinkronizatuta',
+    'sync.copyLink': 'Kopiatu partekatzeko esteka',
+    'sync.leave': 'Irten gelatik',
+    'sync.roomCode': 'Gelaren kodea',
+    'sync.join': 'Sartu gelan',
+    'sync.newCode': 'Kode berria',
+  },
 } as const satisfies Record<Language, Record<string, string>>;
 
 export type MessageKey = keyof (typeof MESSAGES)['fr'];
@@ -73,7 +101,7 @@ export class I18n {
 
   constructor() {
     const stored = globalThis.localStorage?.getItem(LANGUAGE_STORAGE_KEY);
-    if (stored === 'fr' || stored === 'en') {
+    if (stored === 'fr' || stored === 'en' || stored === 'eu') {
       this.language.set(stored);
       this.syncDocument(stored);
     } else {
