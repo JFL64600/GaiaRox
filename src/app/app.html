@@ -13,16 +13,28 @@
         </button>
       }
     </div>
-    <div class="theme-switch" role="group" [attr.aria-label]="i18n.t('theme.label')">
-      @for (option of themes; track option.id) {
-        <button
-          type="button"
-          [style.background]="option.swatch"
-          [attr.aria-label]="i18n.t(option.labelKey)"
-          [attr.title]="i18n.t(option.labelKey)"
-          [attr.aria-pressed]="themeService.theme() === option.id"
-          (click)="themeService.setTheme(option.id)"
-        ></button>
+    <div class="theme-switch">
+      <button
+        type="button"
+        class="theme-current"
+        [style.background]="currentSwatch()"
+        [attr.aria-label]="i18n.t('theme.label')"
+        [attr.title]="i18n.t('theme.label')"        [attr.aria-expanded]="themeMenuOpen()"
+        (click)="themeMenuOpen.set(!themeMenuOpen())"
+      ></button>
+      @if (themeMenuOpen()) {
+        <div class="theme-menu" role="group" [attr.aria-label]="i18n.t('theme.label')">
+          @for (option of themes; track option.id) {
+            <button
+              type="button"
+              [style.background]="option.swatch"
+              [attr.aria-label]="i18n.t(option.labelKey)"
+              [attr.title]="i18n.t(option.labelKey)"
+              [attr.aria-pressed]="themeService.theme() === option.id"
+              (click)="chooseTheme(option.id)"
+            ></button>
+          }
+        </div>
       }
     </div>
   </div>
