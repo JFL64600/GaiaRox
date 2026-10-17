@@ -29,9 +29,14 @@ export class App {
 
   @HostListener('document:click', ['$event'])
   protected closeThemeMenu(event: Event): void {
-    if (!(event.target as Element).closest('.theme-switch')) {
+    if (!(event.target instanceof Element) || !event.target.closest('.theme-switch')) {
       this.themeMenuOpen.set(false);
     }
+  }
+
+  @HostListener('document:keydown.escape')
+  protected closeThemeMenuOnEscape(): void {
+    this.themeMenuOpen.set(false);
   }
 
   /** Ctrl+Shift+Z clears the saved chronometers and reloads the page. */

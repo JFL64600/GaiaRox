@@ -106,7 +106,7 @@ main {
   transform: translateX(-50%);
 }
 
-.theme-menu button[aria-selected='true'] {
+.theme-menu button[aria-pressed='true'] {
   outline: 2px solid var(--header-text);
   outline-offset: 2px;
 }
