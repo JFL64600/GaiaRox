@@ -92,8 +92,8 @@ describe('ChronometerStore', () => {
 
     expect(store.chronometers().map(({ name }) => name)).toEqual([
       'Xabi',
-      'Chronometer 2',
-      'Chronometer 3',
+      '2. kronometroa',
+      '3. kronometroa',
     ]);
   });
 

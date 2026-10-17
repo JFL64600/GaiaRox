@@ -24,7 +24,7 @@ describe('App', () => {
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('.brand')?.textContent).toContain('GaiaRox');
-    expect(compiled.querySelectorAll('nav a')).toHaveLength(2);
+    expect(compiled.querySelector('nav')).toBeNull();
   });
 
   it('preserves the root chronometer set across in-app navigation', async () => {
@@ -42,7 +42,7 @@ describe('App', () => {
     expect(initialIds).toHaveLength(2);
     expect(initialRenderedIds).toEqual(initialIds);
 
-    await harness.navigateByUrl('/about');
+    await harness.navigateByUrl('/');
     await harness.navigateByUrl('/chronometers');
 
     const returnedIds = store.chronometers().map(({ id }) => id);
@@ -55,4 +55,3 @@ describe('App', () => {
     expect(returnedRenderedIds).toEqual(initialRenderedIds);
   });
 });
-

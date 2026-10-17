@@ -1,8 +1,9 @@
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
-import { ChronometerState, ChronometerView } from './chronometer.model';
-import { CHRONOMETER_CLOCK, CHRONOMETER_TIMER } from './chronometer.tokens';
+import { ChronometerSnapshot, ChronometerState, ChronometerView } from './chronometer.model';
+import { I18n } from './i18n.service';
+import { CHRONOMETER_CLOCK, CHRONOMETER_REMOTE, CHRONOMETER_TIMER } from './chronometer.tokens';
 
 const TICK_PERIOD_MILLISECONDS = 1_000;
 
@@ -11,12 +12,19 @@ export class ChronometerStore {
   private readonly clock = inject(CHRONOMETER_CLOCK);
   private readonly timer = inject(CHRONOMETER_TIMER);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly remote = inject(CHRONOMETER_REMOTE);
+  private readonly i18n = inject(I18n);
 
   private readonly entries = signal<readonly ChronometerState[]>(Object.freeze([]));
   private readonly nextId = signal(1);
   private readonly sharedStart = signal<number | null>(null);
   private readonly currentInstant = signal(0);
   private tickSubscription: Subscription | null = null;
+  private readonly roomId = signal<string | null>(null);
+  private disconnect: (() => void) | null = null;
+  private clockOffset = 0;
+  private destroyed = false;
+  private joinToken = 0;
 
   readonly started = computed(() => this.sharedStart() !== null);
   readonly running = computed(() => this.entries().some(({ status }) => status === 'running'));
@@ -46,6 +54,115 @@ export class ChronometerStore {
     );
   });
 
+  /** Joins a shared room: remote state replaces local state and later changes sync both ways. */
+  joinRoom(roomId: string): void {
+    this.leaveRoom();
+    this.roomId.set(roomId);
+    const token = this.joinToken;
+    const connect = (): void => {
+      if (token !== this.joinToken) {
+        return;
+      }
+      this.disconnect = this.remote.connect(
+        roomId,
+        (snapshot) => {
+          this.syncErrorState.set(false);
+          this.applyRemote(snapshot);
+        },
+        () => this.syncErrorState.set(true),
+      );
+    };
+
+    if (!this.remote.measureClockOffset) {
+      connect();
+      return;
+    }
+
+    // Align this device's clock with the shared server clock before applying synced instants.
+    this.remote
+      .measureClockOffset()
+      .catch(() => 0)
+      .then((offset) => {
+        if (token === this.joinToken) {
+          this.clockOffset = offset;
+        }
+        connect();
+      });
+  }
+
+  leaveRoom(): void {
+    this.joinToken++;
+    this.disconnect?.();
+    this.disconnect = null;
+    this.roomId.set(null);
+    this.syncErrorState.set(false);
+    this.clockOffset = 0;
+  }
+
+  private now(): number {
+    return this.clock() + this.clockOffset;
+  }
+  readonly currentRoom = this.roomId.asReadonly();
+  private readonly syncErrorState = signal(false);
+  /** True when the last sync attempt failed or the room held invalid data. */
+  readonly syncError = this.syncErrorState.asReadonly();
+
+  constructor() {
+    this.destroyRef.onDestroy(() => {
+      this.destroyed = true;
+      this.leaveRoom();
+    });
+  }
+
+  private applyRemote(snapshot: ChronometerSnapshot | null): void {
+    if (snapshot === null) {
+      this.publish();
+      return;
+    }
+
+    this.nextId.set(snapshot.nextId);
+    this.sharedStart.set(snapshot.sharedStart);
+    this.currentInstant.set(this.now());
+    this.entries.set(Object.freeze(snapshot.entries.map((entry) => Object.freeze({ ...entry }))));
+    this.syncTicking();
+  }
+
+  private publish(): void {
+    const roomId = this.roomId();
+    if (roomId === null) {
+      return;
+    }
+
+    this.remote.push(
+      roomId,
+      {
+        entries: this.entries(),
+        nextId: this.nextId(),
+        sharedStart: this.sharedStart(),
+      },
+      () => this.syncErrorState.set(true),
+    );
+  }
+
+  private ensureTicking(): void {
+    if (this.destroyed) {
+      return;
+    }
+    if (!this.tickSubscription || this.tickSubscription.closed) {
+      this.tickSubscription = this.timer(TICK_PERIOD_MILLISECONDS)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => this.currentInstant.set(this.now()));
+    }
+  }
+
+  private syncTicking(): void {
+    if (this.entries().some(({ status }) => status === 'running')) {
+      this.ensureTicking();
+    } else {
+      this.tickSubscription?.unsubscribe();
+      this.tickSubscription = null;
+    }
+  }
   add(name?: string): void {
     if (this.started()) {
       return;
@@ -53,7 +170,8 @@ export class ChronometerStore {
 
     const displayNumber = this.nextId();
     const id = `chronometer-${displayNumber}`;
-    const chronometerName = name?.trim() || `Chronometer ${displayNumber}`;
+    const chronometerName =
+      name?.trim() || this.i18n.t('chronometer.defaultName', { n: displayNumber });
     this.nextId.update((value) => value + 1);
     this.entries.update((entries) =>
       Object.freeze([
@@ -68,6 +186,7 @@ export class ChronometerStore {
         }),
       ]),
     );
+    this.publish();
   }
 
   start(): void {
@@ -75,7 +194,7 @@ export class ChronometerStore {
       return;
     }
 
-    const startInstant = this.clock();
+    const startInstant = this.now();
     const runningEntries = Object.freeze(
       this.entries().map((entry) =>
         Object.freeze({
@@ -90,14 +209,12 @@ export class ChronometerStore {
     this.currentInstant.set(startInstant);
     this.sharedStart.set(startInstant);
     this.entries.set(runningEntries);
-
-    this.tickSubscription = this.timer(TICK_PERIOD_MILLISECONDS)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.currentInstant.set(this.clock()));
+    this.ensureTicking();
+    this.publish();
   }
 
   startOne(id: string): void {
-    const now = this.clock();
+    const now = this.now();
     this.updateOne(id, now, (entry) =>
       entry.status === 'stopped' && entry.startInstant === null
         ? { ...entry, status: 'running', startInstant: now, stopInstant: null }
@@ -106,7 +223,7 @@ export class ChronometerStore {
   }
 
   resumeOne(id: string): void {
-    const now = this.clock();
+    const now = this.now();
     this.updateOne(id, now, (entry) =>
       entry.status === 'stopped' && entry.startInstant !== null && entry.stopInstant !== null
         ? {
@@ -135,11 +252,8 @@ export class ChronometerStore {
       Object.freeze(entries.map((entry) => (entry.id === id ? Object.freeze(changed) : entry))),
     );
 
-    if (!this.tickSubscription || this.tickSubscription.closed) {
-      this.tickSubscription = this.timer(TICK_PERIOD_MILLISECONDS)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe(() => this.currentInstant.set(this.clock()));
-    }
+    this.ensureTicking();
+    this.publish();
   }
 
   stop(id: string): void {
@@ -148,7 +262,7 @@ export class ChronometerStore {
       return;
     }
 
-    const stopInstant = this.clock();
+    const stopInstant = this.now();
     const stoppedEntries = entries.map((entry) =>
       entry.id === id
         ? Object.freeze({
@@ -170,10 +284,8 @@ export class ChronometerStore {
 
     this.entries.set(sortedEntries);
 
-    if (!sortedEntries.some(({ status }) => status === 'running')) {
-      this.tickSubscription?.unsubscribe();
-      this.tickSubscription = null;
-    }
+    this.syncTicking();
+    this.publish();
   }
 
   resume(): void {
@@ -181,7 +293,7 @@ export class ChronometerStore {
       return;
     }
 
-    const now = this.clock();
+    const now = this.now();
     const resumedEntries = Object.freeze(
       this.entries().map((entry) => {
         const frozenElapsed =
@@ -200,10 +312,8 @@ export class ChronometerStore {
 
     this.currentInstant.set(now);
     this.entries.set(resumedEntries);
-
-    this.tickSubscription = this.timer(TICK_PERIOD_MILLISECONDS)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.currentInstant.set(this.clock()));
+    this.ensureTicking();
+    this.publish();
   }
 }
 

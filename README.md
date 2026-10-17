@@ -71,3 +71,14 @@ verifies that each application lifetime performs one new valid selection.
 
 The initialization failure path is automated because normal browser randomness should
 not fail.
+
+
+## Cloud sync (optional)
+
+Chronometers can be shared live across devices through Firebase Firestore, using a shared room code (no login).
+
+1. Create a Firebase project and a Firestore database, then deploy `firestore.rules`.
+2. Register a web app and paste its public config into `src/app/core/firebase.config.ts` (`FIREBASE_CONFIG`).
+3. Open the app, enter a room code (or click "New code"), and join. Use "Copy share link" to open the same room on another device (`?room=<code>`).
+
+While `FIREBASE_CONFIG` is `null`, the app stays local and the sync UI is hidden. Anyone who knows a room code can read and edit it, so use long random codes. Devices should have reasonably accurate clocks because timers use absolute timestamps. Concurrent edits are last-write-wins.

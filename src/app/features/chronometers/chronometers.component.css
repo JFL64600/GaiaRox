@@ -8,7 +8,7 @@
 
 .eyebrow {
   margin: 0 0 0.35rem;
-  color: #42604d;
+  color: var(--muted);
   font-size: 0.8rem;
   font-weight: 750;
   letter-spacing: 0.09em;
@@ -32,15 +32,15 @@ button {
   padding: 0.75rem 1.25rem;
   border: 0;
   border-radius: 0.5rem;
-  color: #fff;
-  background: #10643b;
+  color: var(--on-accent);
+  background: var(--accent);
   cursor: pointer;
   font-weight: 750;
 }
 
 button:disabled {
-  color: #526158;
-  background: #d4ddd7;
+  color: var(--disabled-text);
+  background: var(--disabled-bg);
   cursor: not-allowed;
 }
 
@@ -64,18 +64,18 @@ button:disabled {
   height: 100%;
   flex-direction: column;
   padding: 1.25rem;
-  border: 0.125rem solid #cad8ce;
+  border: 0.125rem solid var(--border);
   border-radius: 0.75rem;
-  background: #fff;
-  box-shadow: 0 0.25rem 1rem rgb(20 54 34 / 8%);
+  background: var(--surface);
+  box-shadow: 0 0.25rem 1rem var(--shadow);
 }
 
 .chronometer-card.running {
-  border-color: #16814c;
+  border-color: var(--accent-strong);
 }
 
 h2 {
-  color: #42604d;
+  color: var(--muted);
   font-size: 1rem;
 }
 
@@ -109,9 +109,9 @@ h2 {
 
 .error {
   padding: 1rem;
-  border-left: 0.3rem solid #a51c30;
-  color: #68101e;
-  background: #fce8eb;
+  border-left: 0.3rem solid var(--danger);
+  color: var(--danger-text);
+  background: var(--danger-bg);
   font-weight: 650;
 }
 
@@ -123,18 +123,18 @@ h2 {
   min-height: 8rem;
   align-items: center;
   justify-content: center;
-  border: 0.125rem dashed #9cb3a4;
+  border: 0.125rem dashed var(--border-strong);
   border-radius: 0.75rem;
   background: transparent;
-  color: #10643b;
+  color: var(--accent);
   font-size: 2rem;
   min-width: 0;
   padding: 1.25rem;
 }
 
 .add-tile:hover {
-  border-color: #10643b;
-  background: #eef5f0;
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .name-form {
@@ -145,36 +145,36 @@ h2 {
   flex-direction: column;
   gap: 0.6rem;
   padding: 1.25rem;
-  border: 0.125rem solid #10643b;
+  border: 0.125rem solid var(--accent);
   border-radius: 0.75rem;
-  background: #fff;
+  background: var(--surface);
 }
 
 .name-form label {
-  color: #42604d;
+  color: var(--muted);
   font-weight: 750;
 }
 
 .name-form input {
   padding: 0.6rem 0.75rem;
-  border: 0.125rem solid #9cb3a4;
+  border: 0.125rem solid var(--border-strong);
   border-radius: 0.5rem;
   font: inherit;
 }
 
 .name-form input:focus-visible {
-  border-color: #10643b;
-  outline: 0.125rem solid #10643b;
+  border-color: var(--accent);
+  outline: 0.125rem solid var(--accent);
   outline-offset: 0.125rem;
 }
 
 .name-form input[aria-invalid='true'] {
-  border-color: #a51c30;
+  border-color: var(--danger);
 }
 
 .name-error {
   margin: 0;
-  color: #a51c30;
+  color: var(--danger);
   font-size: 0.9rem;
   font-weight: 650;
 }
@@ -191,9 +191,9 @@ h2 {
 }
 
 .name-actions .secondary {
-  border: 0.125rem solid #10643b;
-  color: #10643b;
-  background: #fff;
+  border: 0.125rem solid var(--accent);
+  color: var(--accent);
+  background: var(--surface);
 }
 
 @media (max-width: 30rem) {
@@ -206,4 +206,12 @@ h2 {
     align-items: stretch;
     flex-direction: column;
   }
+}
+
+.sync-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
 }
