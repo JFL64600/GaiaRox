@@ -160,6 +160,7 @@ export class ChronometerStore {
     this.startedAtGmtState.set(snapshot.startedAtGmt ?? null);
     this.currentInstant.set(this.now());
     this.entries.set(Object.freeze(snapshot.entries.map((entry) => Object.freeze({ ...entry }))));
+    this.saveLocal();
     this.syncTicking();
   }
 
