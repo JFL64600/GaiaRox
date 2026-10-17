@@ -1,3 +1,4 @@
+import { resetLocalStorage } from './core/testing-storage';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
@@ -7,6 +8,7 @@ import { ChronometerStore } from './core/chronometer.store';
 
 describe('App', () => {
   beforeEach(async () => {
+    resetLocalStorage();
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [provideRouter(routes)],
