@@ -9,8 +9,8 @@
   justify-content: space-between;
   gap: 1.5rem;
   padding: 1.5rem clamp(1rem, 4vw, 3rem);
-  color: #fff;
-  background: #173f2a;
+  color: var(--header-text);
+  background: var(--header);
 }
 
 .brand {
@@ -27,12 +27,12 @@ nav {
 }
 
 nav a {
-  color: #dceae0;
+  color: var(--header-muted);
   text-underline-offset: 0.3rem;
 }
 
 nav a.active {
-  color: #fff;
+  color: var(--header-text);
   font-weight: 700;
 }
 
@@ -57,16 +57,42 @@ main {
   min-width: 3rem;
   padding: 0.25rem 0.6rem;
   text-align: center;
-  color: #dceae0;
+  color: var(--header-muted);
   font: inherit;
   font-weight: 600;
   background: transparent;
-  border: 1px solid #dceae0;
+  border: 1px solid var(--header-muted);
   border-radius: 0.4rem;
   cursor: pointer;
 }
 
 .language-switch button[aria-pressed='true'] {
-  color: #173f2a;
-  background: #fff;
+  color: var(--header);
+  background: var(--header-text);
+}
+
+.header-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+.theme-switch {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.theme-switch button {
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 2px solid var(--header-muted);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.theme-switch button[aria-pressed='true'] {
+  outline: 2px solid var(--header-text);
+  outline-offset: 2px;
 }

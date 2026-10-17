@@ -1,16 +1,30 @@
 <header class="site-header">
   <a class="brand" routerLink="/">GaiaRox</a>
-  <div class="language-switch" role="group" [attr.aria-label]="i18n.t('language.label')">
-    @for (language of languages; track language) {
-      <button
-        type="button"
-        [attr.lang]="language"
-        [attr.aria-pressed]="i18n.language() === language"
-        (click)="i18n.setLanguage(language)"
-      >
-        {{ languageLabels[language] }}
-      </button>
-    }
+  <div class="header-controls">
+    <div class="language-switch" role="group" [attr.aria-label]="i18n.t('language.label')">
+      @for (language of languages; track language) {
+        <button
+          type="button"
+          [attr.lang]="language"
+          [attr.aria-pressed]="i18n.language() === language"
+          (click)="i18n.setLanguage(language)"
+        >
+          {{ languageLabels[language] }}
+        </button>
+      }
+    </div>
+    <div class="theme-switch" role="group" [attr.aria-label]="i18n.t('theme.label')">
+      @for (option of themes; track option.id) {
+        <button
+          type="button"
+          [style.background]="option.swatch"
+          [attr.aria-label]="i18n.t(option.labelKey)"
+          [attr.title]="i18n.t(option.labelKey)"
+          [attr.aria-pressed]="themeService.theme() === option.id"
+          (click)="themeService.setTheme(option.id)"
+        ></button>
+      }
+    </div>
   </div>
 </header>
 
