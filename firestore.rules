@@ -4,11 +4,12 @@ service cloud.firestore {
     match /rooms/{roomId} {
       allow read: if roomId.size() >= 6 && roomId.size() <= 64;
       allow write: if roomId.size() >= 6 && roomId.size() <= 64
-        && request.resource.data.keys().hasOnly(['entries', 'nextId', 'sharedStart'])
+        && request.resource.data.keys().hasOnly(['entries', 'nextId', 'sharedStart', 'startedAtGmt'])
         && request.resource.data.entries is list
         && request.resource.data.entries.size() <= 100
         && request.resource.data.nextId is int
-        && (request.resource.data.sharedStart == null || request.resource.data.sharedStart is number);
+        && (request.resource.data.sharedStart == null || request.resource.data.sharedStart is number)
+        && (!('startedAtGmt' in request.resource.data) || request.resource.data.startedAtGmt == null || request.resource.data.startedAtGmt is string);
     }
 
     // Throwaway docs used to measure the offset between a device clock and the server clock.

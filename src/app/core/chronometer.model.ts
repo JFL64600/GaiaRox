@@ -20,6 +20,8 @@ export interface ChronometerSnapshot {
   readonly entries: readonly ChronometerState[];
   readonly nextId: number;
   readonly sharedStart: number | null;
+  /** Complete start date in GMT format (e.g. "Sat, 17 Oct 2026 14:15:52 GMT"). */
+  readonly startedAtGmt: string | null;
 }
 
 function isInstant(value: unknown): value is number | null {
@@ -46,7 +48,7 @@ export function parseSnapshot(data: unknown): ChronometerSnapshot | null {
   if (typeof data !== 'object' || data === null) {
     return null;
   }
-  const { entries, nextId, sharedStart } = data as Record<string, unknown>;
+  const { entries, nextId, sharedStart, startedAtGmt } = data as Record<string, unknown>;
   if (
     !Array.isArray(entries) ||
     !entries.every(isEntry) ||
@@ -66,5 +68,6 @@ export function parseSnapshot(data: unknown): ChronometerSnapshot | null {
     })),
     nextId: nextId as number,
     sharedStart,
+    startedAtGmt: typeof startedAtGmt === 'string' ? startedAtGmt : null,
   };
 }

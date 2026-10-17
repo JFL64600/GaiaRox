@@ -15,6 +15,7 @@ describe('parseSnapshot', () => {
       entries: [entry],
       nextId: 2,
       sharedStart: null,
+      startedAtGmt: null,
     });
   });
 
