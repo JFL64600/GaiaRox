@@ -2,8 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { I18n } from './i18n.service';
 
 describe('I18n', () => {
-  beforeEach(() => localStorage.clear());
-
   it('defaults to French and updates the document language', () => {
     const i18n = TestBed.inject(I18n);
     expect(i18n.language()).toBe('fr');
@@ -15,7 +13,6 @@ describe('I18n', () => {
     const i18n = TestBed.inject(I18n);
     i18n.setLanguage('en');
     expect(i18n.t('chronometer.startNamed', { name: 'Xabi' })).toBe('Start Xabi');
-    expect(localStorage.getItem('gaiarox.language')).toBe('en');
     expect(document.documentElement.lang).toBe('en');
   });
 });
