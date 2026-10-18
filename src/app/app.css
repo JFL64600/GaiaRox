@@ -80,8 +80,7 @@ main {
 }
 
 .theme-switch {
-  display: flex;
-  gap: 0.4rem;
+  position: relative;
 }
 
 .theme-switch button {
@@ -93,7 +92,22 @@ main {
   cursor: pointer;
 }
 
-.theme-switch button[aria-pressed='true'] {
+.theme-menu {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  left: 50%;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.4rem;
+  background: var(--header);
+  border: 1px solid var(--header-muted);
+  border-radius: 1rem;
+  transform: translateX(-50%);
+}
+
+.theme-menu button[aria-pressed='true'] {
   outline: 2px solid var(--header-text);
   outline-offset: 2px;
 }

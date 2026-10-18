@@ -35,16 +35,32 @@ describe('ChronometersComponent', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  function startButton(): HTMLButtonElement | null {
-    return element().querySelectorAll<HTMLButtonElement>('.heading button')[0] ?? null;
+  function cardButtons(position: number): HTMLButtonElement[] {
+    return Array.from(
+      element().querySelectorAll<HTMLButtonElement>(
+        `.card-actions button:nth-child(${position})`,
+      ),
+    );
   }
 
-  function resumeButton(): HTMLButtonElement | null {
-    return element().querySelectorAll<HTMLButtonElement>('.heading button')[1] ?? null;
+  function startButtons(): HTMLButtonElement[] {
+    return cardButtons(1);
   }
 
   function stopButtons(): HTMLButtonElement[] {
-    return Array.from(element().querySelectorAll<HTMLButtonElement>('.stop-button'));
+    return cardButtons(2);
+  }
+
+  function resumeButtons(): HTMLButtonElement[] {
+    return cardButtons(3);
+  }
+
+  function times(): (string | undefined)[] {
+    return Array.from(element().querySelectorAll('.time'), (time) => time.textContent?.trim());
+  }
+
+  function statuses(): (string | null)[] {
+    return Array.from(element().querySelectorAll('.status strong'), (s) => s.textContent);
   }
 
   function addButton(): HTMLButtonElement | null {
@@ -178,7 +194,6 @@ describe('ChronometersComponent', () => {
     expect(element().querySelectorAll('.chronometer-card')).toHaveLength(0);
     expect(addButton()).toBeInstanceOf(HTMLButtonElement);
     expect(addButton()?.getAttribute('aria-label')).toBe('Add chronometer');
-    expect(startButton()?.disabled).toBe(true);
   });
 
   it('appends one stopped chronometer card and keeps the Add tile beside it on every click', async () => {
@@ -187,7 +202,7 @@ describe('ChronometersComponent', () => {
     await addChronometers(1);
     expect(element().querySelectorAll('.chronometer-card')).toHaveLength(1);
     expect(addButton()).toBeInstanceOf(HTMLButtonElement);
-    expect(startButton()?.disabled).toBe(false);
+    expect(startButtons()[0]?.disabled).toBe(false);
 
     await addChronometers(1);
     expect(element().querySelectorAll('.chronometer-card')).toHaveLength(2);
@@ -195,9 +210,7 @@ describe('ChronometersComponent', () => {
 
     const cards = element().querySelectorAll<HTMLElement>('.chronometer-card');
     expect(Array.from(cards, ({ id }) => id)).toEqual(store.chronometers().map(({ id }) => id));
-    expect(
-      Array.from(element().querySelectorAll('.status strong'), (status) => status.textContent),
-    ).toEqual(['Stopped', 'Stopped']);
+    expect(statuses()).toEqual(['Stopped', 'Stopped']);
     expect(stopButtons()).toHaveLength(2);
     expect(stopButtons().every(({ disabled }) => disabled)).toBe(true);
   });
@@ -215,63 +228,38 @@ describe('ChronometersComponent', () => {
     ).toBe(true);
   });
 
-  it('removes the Add tile once Start has fired', async () => {
+  it('starts a single chronometer with its own Start button and records the GMT date', async () => {
     await configure();
     await addChronometers(2);
-    expect(addButton()).toBeInstanceOf(HTMLButtonElement);
+    now = 5_000;
 
-    startButton()?.click();
+    startButtons()[0]?.click();
     await fixture.whenStable();
 
-    expect(addButton()).toBeNull();
-    expect(element().querySelectorAll('.chronometer-card')).toHaveLength(2);
+    expect(statuses()).toEqual(['Running', 'Stopped']);
+    expect(startButtons()[0]?.disabled).toBe(true);
+    expect(startButtons()[1]?.disabled).toBe(false);
+    expect(stopButtons()[0]?.disabled).toBe(false);
+    expect(store.startedAtGmt()).toBe('Thu, 01 Jan 1970 00:00:05 GMT');
   });
 
-  it('uses one clearly named native Start button that starts the shared store action', async () => {
+  it('updates every running time after a controlled one-second signal advance', async () => {
     await configure();
     await addChronometers(5);
-    const start = startButton();
-    const startSpy = vi.spyOn(store, 'start');
-
-    expect(start).toBeInstanceOf(HTMLButtonElement);
-    expect(start?.type).toBe('button');
-    expect(start?.textContent?.trim()).toBe('Start');
-    expect(start?.disabled).toBe(false);
-
-    start?.click();
-    await fixture.whenStable();
-
-    expect(startSpy).toHaveBeenCalledOnce();
-    expect(start?.disabled).toBe(true);
-    expect(store.chronometers().every(({ status }) => status === 'running')).toBe(true);
-    expect(new Set(store.chronometers().map(({ startInstant }) => startInstant))).toEqual(
-      new Set([0]),
-    );
-    expect(
-      Array.from(element().querySelectorAll('.status strong'), (status) => status.textContent),
-    ).toEqual(Array(5).fill('Running'));
-    expect(stopButtons().every(({ disabled }) => !disabled)).toBe(true);
-  });
-
-  it('updates every rendered time after a controlled one-second signal advance', async () => {
-    await configure();
-    await addChronometers(5);
-    startButton()?.click();
+    startButtons().forEach((button) => button.click());
     await fixture.whenStable();
 
     now = 1_000;
     tick.next();
     await fixture.whenStable();
 
-    expect(
-      Array.from(element().querySelectorAll('.time'), (time) => time.textContent?.trim()),
-    ).toEqual(Array(5).fill('00:01.000'));
+    expect(times()).toEqual(Array(5).fill('00:01.000'));
   });
 
   it('stops only the selected chronometer and freezes its rendered value', async () => {
     await configure();
     await addChronometers(5);
-    startButton()?.click();
+    startButtons().forEach((button) => button.click());
     await fixture.whenStable();
     now = 1_250;
 
@@ -284,83 +272,36 @@ describe('ChronometersComponent', () => {
         .slice(1)
         .every(({ disabled }) => !disabled),
     ).toBe(true);
-    expect(
-      Array.from(element().querySelectorAll('.status strong'), (status) => status.textContent),
-    ).toEqual(['Stopped', 'Running', 'Running', 'Running', 'Running']);
+    expect(statuses()).toEqual(['Stopped', 'Running', 'Running', 'Running', 'Running']);
 
     now = 2_000;
     tick.next();
     await fixture.whenStable();
 
-    expect(
-      Array.from(element().querySelectorAll('.time'), (time) => time.textContent?.trim()),
-    ).toEqual(['00:01.250', '00:02.000', '00:02.000', '00:02.000', '00:02.000']);
-
-    stopButtons()
-      .slice(1)
-      .forEach((button) => button.click());
-    await fixture.whenStable();
-
-    expect(startButton()?.disabled).toBe(true);
-    expect(stopButtons().every(({ disabled }) => disabled)).toBe(true);
+    expect(times()).toEqual(['00:01.250', '00:02.000', '00:02.000', '00:02.000', '00:02.000']);
   });
 
-  it('keeps Resume disabled until Start has fired and every chronometer is stopped', async () => {
+  it('resumes a stopped chronometer from its own frozen elapsed value', async () => {
     await configure();
-    await addChronometers(5);
-
-    expect(resumeButton()?.textContent?.trim()).toBe('Resume');
-    expect(resumeButton()?.disabled).toBe(true);
-
-    startButton()?.click();
-    await fixture.whenStable();
-    expect(resumeButton()?.disabled).toBe(true);
-
-    stopButtons()
-      .slice(0, -1)
-      .forEach((button) => button.click());
-    await fixture.whenStable();
-    expect(resumeButton()?.disabled).toBe(true);
-
-    stopButtons()[stopButtons().length - 1]?.click();
-    await fixture.whenStable();
-    expect(resumeButton()?.disabled).toBe(false);
-  });
-
-  it('resumes each chronometer by continuing from its own frozen elapsed value', async () => {
-    await configure();
-    await addChronometers(5);
-    startButton()?.click();
+    await addChronometers(2);
+    startButtons().forEach((button) => button.click());
     await fixture.whenStable();
 
     now = 1_250;
     stopButtons()[0]?.click();
     await fixture.whenStable();
-    now = 3_000;
-    stopButtons()
-      .slice(1)
-      .forEach((button) => button.click());
-    await fixture.whenStable();
+    expect(resumeButtons()[0]?.disabled).toBe(false);
+    expect(resumeButtons()[1]?.disabled).toBe(true);
 
     now = 9_000;
-    resumeButton()?.click();
+    resumeButtons()[0]?.click();
     await fixture.whenStable();
-
-    expect(
-      Array.from(element().querySelectorAll('.time'), (time) => time.textContent?.trim()),
-    ).toEqual(['00:01.250', '00:03.000', '00:03.000', '00:03.000', '00:03.000']);
-    expect(
-      Array.from(element().querySelectorAll('.status strong'), (status) => status.textContent),
-    ).toEqual(Array(5).fill('Running'));
-    expect(resumeButton()?.disabled).toBe(true);
-    expect(stopButtons().every(({ disabled }) => !disabled)).toBe(true);
+    expect(statuses()).toEqual(['Running', 'Running']);
 
     now = 9_400;
     tick.next();
     await fixture.whenStable();
 
-    expect(
-      Array.from(element().querySelectorAll('.time'), (time) => time.textContent?.trim()),
-    ).toEqual(['00:01.650', '00:03.400', '00:03.400', '00:03.400', '00:03.400']);
+    expect(times()).toEqual(['00:01.650', '00:09.400']);
   });
 });

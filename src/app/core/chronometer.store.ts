@@ -160,6 +160,7 @@ export class ChronometerStore {
     this.startedAtGmtState.set(snapshot.startedAtGmt ?? null);
     this.currentInstant.set(this.now());
     this.entries.set(Object.freeze(snapshot.entries.map((entry) => Object.freeze({ ...entry }))));
+    this.saveLocal();
     this.syncTicking();
   }
 
@@ -254,11 +255,13 @@ export class ChronometerStore {
 
   startOne(id: string): void {
     const now = this.now();
-    this.updateOne(id, now, (entry) =>
-      entry.status === 'stopped' && entry.startInstant === null
-        ? { ...entry, status: 'running', startInstant: now, stopInstant: null }
-        : null,
-    );
+    this.updateOne(id, now, (entry) => {
+      if (entry.status !== 'stopped' || entry.startInstant !== null) {
+        return null;
+      }
+      this.startedAtGmtState.set(new Date(now).toUTCString());
+      return { ...entry, status: 'running', startInstant: now, stopInstant: null };
+    });
   }
 
   resumeOne(id: string): void {
