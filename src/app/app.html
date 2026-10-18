@@ -1,5 +1,5 @@
 <header class="site-header">
-  <a class="brand" routerLink="/">GaiaRox</a>
+  <a class="brand" routerLink="/" (click)="onBrandTap($event)">GaiaRox</a>
   <div class="header-controls">
     <div class="language-switch" role="group" [attr.aria-label]="i18n.t('language.label')">
       @for (language of languages; track language) {
