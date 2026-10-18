@@ -44,6 +44,7 @@ export class App {
   private clearLocalStorageAndReload(): void {
     globalThis.localStorage?.removeItem(CHRONOMETER_LOCAL_STORAGE_KEY);
     globalThis.location?.reload();
+  }
 
   protected readonly themeMenuOpen = signal(false);
 
@@ -66,15 +67,5 @@ export class App {
   @HostListener('document:keydown.escape')
   protected closeThemeMenuOnEscape(): void {
     this.themeMenuOpen.set(false);
-  }
-
-  /** Ctrl+Shift+Z clears the saved chronometers and reloads the page. */
-  @HostListener('document:keydown', ['$event'])
-  protected clearLocalStorageShortcut(event: KeyboardEvent): void {
-    if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'z') {
-      event.preventDefault();
-      globalThis.localStorage?.removeItem(CHRONOMETER_LOCAL_STORAGE_KEY);
-      globalThis.location?.reload();
-    }
   }
 }
