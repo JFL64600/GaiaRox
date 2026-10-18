@@ -29,8 +29,8 @@ describe('App', () => {
     expect(compiled.querySelector('nav')).toBeNull();
   });
 
-  it('preserves the root chronometer set across in-app navigation', async () => {
-    const harness = await RouterTestingHarness.create('/chronometers');
+  it('preserves an event chronometer set across in-app navigation', async () => {
+    const harness = await RouterTestingHarness.create('/events/event-abc123');
     const store = TestBed.inject(ChronometerStore);
     store.add();
     store.add();
@@ -44,8 +44,8 @@ describe('App', () => {
     expect(initialIds).toHaveLength(2);
     expect(initialRenderedIds).toEqual(initialIds);
 
-    await harness.navigateByUrl('/');
-    await harness.navigateByUrl('/chronometers');
+    await harness.navigateByUrl('/events');
+    await harness.navigateByUrl('/events/event-abc123');
 
     const returnedIds = store.chronometers().map(({ id }) => id);
     const returnedRenderedIds = Array.from(

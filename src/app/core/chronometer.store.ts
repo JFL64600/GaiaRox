@@ -7,6 +7,9 @@ import { CHRONOMETER_CLOCK, CHRONOMETER_REMOTE, CHRONOMETER_TIMER } from './chro
 
 const LOCAL_STORAGE_KEY = 'gaiarox.chronometers';
 export { LOCAL_STORAGE_KEY as CHRONOMETER_LOCAL_STORAGE_KEY };
+export function eventStorageKey(eventId: string): string {
+  return `${LOCAL_STORAGE_KEY}.${eventId}`;
+}
 const TICK_PERIOD_MILLISECONDS = 1_000;
 
 @Injectable({ providedIn: 'root' })
@@ -28,6 +31,7 @@ export class ChronometerStore {
   private clockOffset = 0;
   private destroyed = false;
   private joinToken = 0;
+  private storageKey = LOCAL_STORAGE_KEY;
 
   /** Complete date of the last start click, in GMT format. */
   readonly startedAtGmt = this.startedAtGmtState.asReadonly();
@@ -95,6 +99,20 @@ export class ChronometerStore {
       });
   }
 
+  /** Switches to the saved chronometers of one event (
+ull for the legacy single list). */
+  openEvent(eventId: string | null): void {
+    this.leaveRoom();
+    this.storageKey = eventId === null ? LOCAL_STORAGE_KEY : eventStorageKey(eventId);
+    this.tickSubscription?.unsubscribe();
+    this.tickSubscription = null;
+    this.entries.set(Object.freeze([]));
+    this.nextId.set(1);
+    this.sharedStart.set(null);
+    this.startedAtGmtState.set(null);
+    this.restoreLocal();
+  }
+
   leaveRoom(): void {
     this.joinToken++;
     this.disconnect?.();
@@ -123,7 +141,7 @@ export class ChronometerStore {
   private restoreLocal(): void {
     let snapshot: ChronometerSnapshot | null = null;
     try {
-      const raw = globalThis.localStorage?.getItem(LOCAL_STORAGE_KEY);
+      const raw = globalThis.localStorage?.getItem(this.storageKey);
       snapshot = raw ? parseSnapshot(JSON.parse(raw)) : null;
     } catch {
       snapshot = null;
@@ -136,7 +154,7 @@ export class ChronometerStore {
   private saveLocal(): void {
     try {
       globalThis.localStorage?.setItem(
-        LOCAL_STORAGE_KEY,
+        this.storageKey,
         JSON.stringify({
           entries: this.entries(),
           nextId: this.nextId(),
