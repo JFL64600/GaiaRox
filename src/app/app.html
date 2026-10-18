@@ -4,8 +4,6 @@
     @if (chronometerStore.eventName(); as eventName) {
       <span class="event-title">- {{ eventName }}</span>
     }
-  </div>
-  <div class="header-controls">
     @if (chronometerStore.currentRoom()) {
       <button
         type="button"
@@ -21,6 +19,8 @@
         </svg>
       </button>
     }
+  </div>
+  <div class="header-controls">
     <div class="language-switch" role="group" [attr.aria-label]="i18n.t('language.label')">
       @for (language of languages; track language) {
         <button
