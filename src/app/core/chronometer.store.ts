@@ -1,15 +1,10 @@
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
-import { ChronometerSnapshot, ChronometerState, ChronometerView, parseSnapshot } from './chronometer.model';
+import { ChronometerSnapshot, ChronometerState, ChronometerView } from './chronometer.model';
 import { I18n } from './i18n.service';
 import { CHRONOMETER_CLOCK, CHRONOMETER_REMOTE, CHRONOMETER_TIMER } from './chronometer.tokens';
 
-const LOCAL_STORAGE_KEY = 'gaiarox.chronometers';
-export { LOCAL_STORAGE_KEY as CHRONOMETER_LOCAL_STORAGE_KEY };
-export function eventStorageKey(eventId: string): string {
-  return `${LOCAL_STORAGE_KEY}.${eventId}`;
-}
 const TICK_PERIOD_MILLISECONDS = 1_000;
 
 @Injectable({ providedIn: 'root' })
@@ -21,9 +16,7 @@ export class ChronometerStore {
   private readonly i18n = inject(I18n);
 
   private readonly entries = signal<readonly ChronometerState[]>(Object.freeze([]));
-  private readonly nextId = signal(1);
-  private readonly sharedStart = signal<number | null>(null);
-  private readonly startedAtGmtState = signal<string | null>(null);
+  private readonly eventNameState = signal<string | null>(null);
   private readonly currentInstant = signal(0);
   private tickSubscription: Subscription | null = null;
   private readonly roomId = signal<string | null>(null);
@@ -31,11 +24,10 @@ export class ChronometerStore {
   private clockOffset = 0;
   private destroyed = false;
   private joinToken = 0;
-  private storageKey = LOCAL_STORAGE_KEY;
 
-  /** Complete date of the last start click, in GMT format. */
-  readonly startedAtGmt = this.startedAtGmtState.asReadonly();
-  readonly started = computed(() => this.sharedStart() !== null);
+  /** Name of the open event, kept in sync with the shared document. */
+  readonly eventName = this.eventNameState.asReadonly();
+  readonly started = computed(() => this.entries().some(({ startInstant }) => startInstant !== null));
   readonly running = computed(() => this.entries().some(({ status }) => status === 'running'));
   readonly allStopped = computed(
     () =>
@@ -99,18 +91,13 @@ export class ChronometerStore {
       });
   }
 
-  /** Switches to the saved chronometers of one event (
-ull for the legacy single list). */
-  openEvent(eventId: string | null): void {
+  /** Opens an event with empty state; the shared document then replaces it once synced. */
+  openEvent(name: string | null = null): void {
     this.leaveRoom();
-    this.storageKey = eventId === null ? LOCAL_STORAGE_KEY : eventStorageKey(eventId);
+    this.eventNameState.set(name);
     this.tickSubscription?.unsubscribe();
     this.tickSubscription = null;
     this.entries.set(Object.freeze([]));
-    this.nextId.set(1);
-    this.sharedStart.set(null);
-    this.startedAtGmtState.set(null);
-    this.restoreLocal();
   }
 
   leaveRoom(): void {
@@ -131,40 +118,10 @@ ull for the legacy single list). */
   readonly syncError = this.syncErrorState.asReadonly();
 
   constructor() {
-    this.restoreLocal();
     this.destroyRef.onDestroy(() => {
       this.destroyed = true;
       this.leaveRoom();
     });
-  }
-
-  private restoreLocal(): void {
-    let snapshot: ChronometerSnapshot | null = null;
-    try {
-      const raw = globalThis.localStorage?.getItem(this.storageKey);
-      snapshot = raw ? parseSnapshot(JSON.parse(raw)) : null;
-    } catch {
-      snapshot = null;
-    }
-    if (snapshot !== null) {
-      this.applyRemote(snapshot);
-    }
-  }
-
-  private saveLocal(): void {
-    try {
-      globalThis.localStorage?.setItem(
-        this.storageKey,
-        JSON.stringify({
-          entries: this.entries(),
-          nextId: this.nextId(),
-          sharedStart: this.sharedStart(),
-          startedAtGmt: this.startedAtGmtState(),
-        }),
-      );
-    } catch {
-      // Storage may be unavailable or full; persistence is best effort.
-    }
   }
 
   private applyRemote(snapshot: ChronometerSnapshot | null): void {
@@ -173,17 +130,15 @@ ull for the legacy single list). */
       return;
     }
 
-    this.nextId.set(snapshot.nextId);
-    this.sharedStart.set(snapshot.sharedStart);
-    this.startedAtGmtState.set(snapshot.startedAtGmt ?? null);
+    if (snapshot.name) {
+      this.eventNameState.set(snapshot.name);
+    }
     this.currentInstant.set(this.now());
-    this.entries.set(Object.freeze(snapshot.entries.map((entry) => Object.freeze({ ...entry }))));
-    this.saveLocal();
+    this.entries.set(Object.freeze(snapshot.chronometers.map((entry) => Object.freeze({ ...entry }))));
     this.syncTicking();
   }
 
   private publish(): void {
-    this.saveLocal();
     const roomId = this.roomId();
     if (roomId === null) {
       return;
@@ -192,10 +147,8 @@ ull for the legacy single list). */
     this.remote.push(
       roomId,
       {
-        entries: this.entries(),
-        nextId: this.nextId(),
-        sharedStart: this.sharedStart(),
-        startedAtGmt: this.startedAtGmtState(),
+        chronometers: this.entries(),
+        name: this.eventNameState(),
       },
       () => this.syncErrorState.set(true),
     );
@@ -225,17 +178,14 @@ ull for the legacy single list). */
       return;
     }
 
-    const displayNumber = this.nextId();
-    const id = `chronometer-${displayNumber}`;
+    const id = crypto.randomUUID();
     const chronometerName =
-      name?.trim() || this.i18n.t('chronometer.defaultName', { n: displayNumber });
-    this.nextId.update((value) => value + 1);
+      name?.trim() || this.i18n.t('chronometer.defaultName', { n: this.entries().length + 1 });
     this.entries.update((entries) =>
       Object.freeze([
         ...entries,
         Object.freeze({
           id,
-          displayNumber,
           name: chronometerName,
           status: 'stopped' as const,
           startInstant: null,
@@ -264,8 +214,6 @@ ull for the legacy single list). */
     );
 
     this.currentInstant.set(startInstant);
-    this.sharedStart.set(startInstant);
-    this.startedAtGmtState.set(new Date(startInstant).toUTCString());
     this.entries.set(runningEntries);
     this.ensureTicking();
     this.publish();
@@ -277,7 +225,6 @@ ull for the legacy single list). */
       if (entry.status !== 'stopped' || entry.startInstant !== null) {
         return null;
       }
-      this.startedAtGmtState.set(new Date(now).toUTCString());
       return { ...entry, status: 'running', startInstant: now, stopInstant: null };
     });
   }

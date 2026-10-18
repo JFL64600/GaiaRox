@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import type { Firestore } from 'firebase/firestore';
 import { ChronometerSnapshot, parseSnapshot } from './chronometer.model';
-import { ChronometerRemote } from './chronometer.tokens';
+import { ChronometerRemote, RemoteEvent } from './chronometer.tokens';
 import { FIREBASE_OPTIONS } from './firebase.token';
 
 /** Firebase is loaded lazily so it stays out of the initial bundle. */
@@ -35,7 +35,7 @@ export class FirestoreChronometerRemote implements ChronometerRemote {
           return;
         }
         unsubscribe = onSnapshot(
-          doc(firestore, 'rooms', roomId),
+          doc(firestore, 'events', roomId),
           (snap) => {
             if (snap.metadata.hasPendingWrites) {
               return;
@@ -69,18 +69,57 @@ export class FirestoreChronometerRemote implements ChronometerRemote {
   ): void {
     Promise.all([this.getFirestore(), import('firebase/firestore')])
       .then(([firestore, { doc, setDoc }]) =>
-        setDoc(doc(firestore, 'rooms', roomId), {
-          entries: snapshot.entries,
-          nextId: snapshot.nextId,
-          sharedStart: snapshot.sharedStart,
-          startedAtGmt: snapshot.startedAtGmt,
+        setDoc(doc(firestore, 'events', roomId), {
+          chronometers: snapshot.chronometers,
+          name: snapshot.name ?? null,
         }),
       )
       .catch(onError);
   }
 
+  watchEvents(
+    onChange: (events: readonly RemoteEvent[]) => void,
+    onError: (error: unknown) => void = () => undefined,
+  ): () => void {
+    let unsubscribe: (() => void) | null = null;
+    let cancelled = false;
+
+    Promise.all([this.getFirestore(), import('firebase/firestore')])
+      .then(([firestore, { collection, onSnapshot }]) => {
+        if (cancelled) {
+          return;
+        }
+        unsubscribe = onSnapshot(
+          collection(firestore, 'events'),
+          (snap) =>
+            onChange(
+              snap.docs.map((entry) => {
+                const name: unknown = entry.data()['name'];
+                return {
+                  id: entry.id,
+                  name: typeof name === 'string' && name.trim() !== '' ? name : entry.id,
+                };
+              }),
+            ),
+          onError,
+        );
+      })
+      .catch(onError);
+
+    return () => {
+      cancelled = true;
+      unsubscribe?.();
+    };
+  }
+
+  remove(roomId: string, onError: (error: unknown) => void = () => undefined): void {
+    Promise.all([this.getFirestore(), import('firebase/firestore')])
+      .then(([firestore, { deleteDoc, doc }]) => deleteDoc(doc(firestore, 'events', roomId)))
+      .catch(onError);
+  }
+
   async measureClockOffset(): Promise<number> {
-    const [firestore, { doc, getDoc, serverTimestamp, setDoc }] = await Promise.all([
+    const [firestore, { deleteDoc, doc, getDoc, serverTimestamp, setDoc }] = await Promise.all([
       this.getFirestore(),
       import('firebase/firestore'),
     ]);
@@ -89,6 +128,7 @@ export class FirestoreChronometerRemote implements ChronometerRemote {
     await setDoc(ref, { t: serverTimestamp() });
     const after = Date.now();
     const serverTime = (await getDoc(ref)).data()?.['t']?.toMillis?.();
+    deleteDoc(ref).catch(() => undefined);
     return typeof serverTime === 'number' ? serverTime - (before + after) / 2 : 0;
   }
 }

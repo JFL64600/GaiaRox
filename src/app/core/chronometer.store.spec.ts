@@ -2,6 +2,7 @@ import { resetLocalStorage } from './testing-storage';
 import { createEnvironmentInjector, EnvironmentInjector } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Subject } from 'rxjs';
+import { vi } from 'vitest';
 import { ChronometerStore, formatElapsed } from './chronometer.store';
 import { CHRONOMETER_CLOCK, CHRONOMETER_TIMER, ChronometerTimer } from './chronometer.tokens';
 
@@ -51,28 +52,26 @@ function createHarness(): StoreHarness {
 }
 
 describe('ChronometerStore', () => {
-  afterEach(() => TestBed.resetTestingModule());
+  beforeEach(() => {
+    let count = 0;
+    vi.spyOn(crypto, 'randomUUID').mockImplementation(
+      () => `chronometer-${++count}` as ReturnType<typeof crypto.randomUUID>,
+    );
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    TestBed.resetTestingModule();
+  });
 
-  describe('local persistence', () => {
-    it('restores state after a reload', () => {
-      const first = createHarness();
-      first.setNow(5_000);
-      first.store.add('A');
-      first.store.start();
-      TestBed.resetTestingModule();
+  it('never writes to local storage', () => {
+    resetLocalStorage();
+    const setItem = vi.spyOn(globalThis.localStorage, 'setItem');
+    const { store, setNow } = createHarness();
+    setNow(5_000);
+    store.add('A');
+    store.start();
 
-      TestBed.configureTestingModule({
-        providers: [
-          { provide: CHRONOMETER_CLOCK, useValue: () => 8_000 },
-          { provide: CHRONOMETER_TIMER, useValue: () => new Subject<void>() },
-        ],
-      });
-      const store = TestBed.inject(ChronometerStore);
-
-      expect(store.started()).toBe(true);
-      expect(store.startedAtGmt()).toBe('Thu, 01 Jan 1970 00:00:05 GMT');
-      expect(store.chronometers()[0].elapsedMilliseconds).toBe(3_000);
-    });
+    expect(setItem).not.toHaveBeenCalled();
   });
 
   it('starts with an empty chronometer collection', () => {

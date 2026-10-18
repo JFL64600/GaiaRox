@@ -240,7 +240,6 @@ describe('ChronometersComponent', () => {
     expect(startButtons()[0]?.disabled).toBe(true);
     expect(startButtons()[1]?.disabled).toBe(false);
     expect(stopButtons()[0]?.disabled).toBe(false);
-    expect(store.startedAtGmt()).toBe('Thu, 01 Jan 1970 00:00:05 GMT');
   });
 
   it('updates every running time after a controlled one-second signal advance', async () => {

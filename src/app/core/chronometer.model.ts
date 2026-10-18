@@ -2,8 +2,6 @@ export type ChronometerStatus = 'stopped' | 'running';
 
 export interface ChronometerState {
   readonly id: string;
-  /** Stable display number assigned on creation; does not change when the list re-sorts. */
-  readonly displayNumber: number;
   readonly name: string;
   readonly status: ChronometerStatus;
   readonly startInstant: number | null;
@@ -17,11 +15,9 @@ export interface ChronometerView extends ChronometerState {
 
 /** Shareable chronometer state exchanged with a remote store. */
 export interface ChronometerSnapshot {
-  readonly entries: readonly ChronometerState[];
-  readonly nextId: number;
-  readonly sharedStart: number | null;
-  /** Complete start date in GMT format (e.g. "Sat, 17 Oct 2026 14:15:52 GMT"). */
-  readonly startedAtGmt: string | null;
+  readonly chronometers: readonly ChronometerState[];
+  /** Display name of the event, shared so every device shows the same title. */
+  readonly name?: string | null;
 }
 
 function isInstant(value: unknown): value is number | null {
@@ -35,7 +31,6 @@ function isEntry(value: unknown): value is ChronometerState {
   const entry = value as Record<string, unknown>;
   return (
     typeof entry['id'] === 'string' &&
-    Number.isInteger(entry['displayNumber']) &&
     typeof entry['name'] === 'string' &&
     (entry['status'] === 'running' || entry['status'] === 'stopped') &&
     isInstant(entry['startInstant']) &&
@@ -48,26 +43,21 @@ export function parseSnapshot(data: unknown): ChronometerSnapshot | null {
   if (typeof data !== 'object' || data === null) {
     return null;
   }
-  const { entries, nextId, sharedStart, startedAtGmt } = data as Record<string, unknown>;
+  const { chronometers, name } = data as Record<string, unknown>;
   if (
-    !Array.isArray(entries) ||
-    !entries.every(isEntry) ||
-    !Number.isInteger(nextId) ||
-    !isInstant(sharedStart)
+    !Array.isArray(chronometers) ||
+    !chronometers.every(isEntry)
   ) {
     return null;
   }
   return {
-    entries: entries.map((entry) => ({
+    chronometers: chronometers.map((entry) => ({
       id: entry.id,
-      displayNumber: entry.displayNumber,
       name: entry.name,
       status: entry.status,
       startInstant: entry.startInstant,
       stopInstant: entry.stopInstant,
     })),
-    nextId: nextId as number,
-    sharedStart,
-    startedAtGmt: typeof startedAtGmt === 'string' ? startedAtGmt : null,
+    name: typeof name === 'string' && name.trim() !== '' ? name : null,
   };
 }

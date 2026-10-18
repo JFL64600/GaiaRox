@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { EVENT_ID_PATTERN, EVENT_NAME_MAX_LENGTH, EventStore } from '../../core/event.store';
+import { EVENT_NAME_MAX_LENGTH, EventStore } from '../../core/event.store';
 import { I18n } from '../../core/i18n.service';
 
 @Component({
@@ -18,8 +18,11 @@ export class EventsComponent {
   protected readonly creating = signal(false);
   protected readonly pendingName = signal('');
   protected readonly canCreate = computed(() => this.pendingName().trim() !== '');
-  protected readonly joinCode = signal('');
-  protected readonly canJoin = computed(() => EVENT_ID_PATTERN.test(this.joinCode().trim()));
+  protected readonly query = signal('');
+  protected readonly filteredEvents = computed(() => {
+    const q = this.query().trim().toLocaleLowerCase();
+    return this.store.events().filter((event) => event.name.toLocaleLowerCase().includes(q));
+  });
 
   protected startCreating(): void {
     this.pendingName.set('');
@@ -43,17 +46,8 @@ export class EventsComponent {
     }
   }
 
-  protected updateJoinCode(event: Event): void {
-    this.joinCode.set((event.target as HTMLInputElement).value);
-  }
-
-  protected join(event?: Event): void {
-    event?.preventDefault();
-    const joined = this.store.join(this.joinCode());
-    if (joined) {
-      this.joinCode.set('');
-      void this.router.navigate(['/events', joined.id]);
-    }
+  protected updateQuery(event: Event): void {
+    this.query.set((event.target as HTMLInputElement).value);
   }
 
   protected remove(id: string, name: string): void {

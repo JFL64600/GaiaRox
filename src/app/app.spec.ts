@@ -5,6 +5,8 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { App } from './app';
 import { routes } from './app.routes';
 import { ChronometerStore } from './core/chronometer.store';
+import { ChronometerSnapshot } from './core/chronometer.model';
+import { CHRONOMETER_REMOTE, ChronometerRemote } from './core/chronometer.tokens';
 
 describe('App', () => {
   beforeEach(async () => {
@@ -29,7 +31,16 @@ describe('App', () => {
     expect(compiled.querySelector('nav')).toBeNull();
   });
 
-  it('preserves an event chronometer set across in-app navigation', async () => {
+  it('restores an event chronometer set from the shared document after navigation', async () => {
+    const saved = new Map<string, ChronometerSnapshot>();
+    const remote: ChronometerRemote = {
+      connect: (id, onSnapshot) => {
+        onSnapshot(saved.get(id) ?? null);
+        return () => undefined;
+      },
+      push: (id, snapshot) => void saved.set(id, snapshot),
+    };
+    TestBed.overrideProvider(CHRONOMETER_REMOTE, { useValue: remote });
     const harness = await RouterTestingHarness.create('/events/event-abc123');
     const store = TestBed.inject(ChronometerStore);
     store.add();

@@ -13,6 +13,20 @@
   background: var(--header);
 }
 
+.brand-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.event-title {
+  overflow: hidden;
+  font-size: 1.25rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .brand {
   color: inherit;
   font-size: 1.5rem;
@@ -55,7 +69,9 @@ main {
 }
 
 .language-switch button {
+  box-sizing: border-box;
   min-width: 3rem;
+  height: 2rem;
   padding: 0.25rem 0.6rem;
   text-align: center;
   color: var(--header-muted);
@@ -70,6 +86,21 @@ main {
 .language-switch button[aria-pressed='true'] {
   color: var(--header);
   background: var(--header-text);
+}
+
+.copy-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 3rem;
+  height: 2rem;
+  padding: 0.25rem 0.6rem;
+  color: var(--header);
+  background: var(--header-text);
+  border: 1px solid var(--header-muted);
+  border-radius: 0.4rem;
+  cursor: pointer;
 }
 
 .header-controls {
