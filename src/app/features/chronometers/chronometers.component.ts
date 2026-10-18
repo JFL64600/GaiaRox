@@ -2,12 +2,15 @@ import {
   afterNextRender,
   Component,
   computed,
+  DestroyRef,
   ElementRef,
   inject,
   Injector,
   signal,
   viewChild,
 } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { EventStore } from '../../core/event.store';
 import { ChronometerStore } from '../../core/chronometer.store';
 import { I18n } from '../../core/i18n.service';
 import { FIREBASE_OPTIONS } from '../../core/firebase.token';
@@ -19,6 +22,7 @@ export const CHRONOMETER_NAME_MAX_LENGTH = 40;
 
 @Component({
   selector: 'app-chronometers',
+  imports: [RouterLink],
   styleUrl: './chronometers.component.css',
   templateUrl: './chronometers.component.html',
 })
@@ -28,6 +32,8 @@ export class ChronometersComponent {
   private readonly injector = inject(Injector);
   private readonly nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
 
+  protected eventId: string | null = null;
+  protected eventName = '';
   protected readonly syncAvailable = inject(FIREBASE_OPTIONS) !== null;
   protected readonly roomInput = signal('');
   protected readonly roomValid = computed(() => ROOM_PATTERN.test(this.roomInput().trim()));
@@ -47,6 +53,19 @@ export class ChronometersComponent {
   );
 
   constructor() {
+    const eventId = inject(ActivatedRoute, { optional: true })?.snapshot.paramMap.get('id') ?? null;
+    if (eventId !== null) {
+      this.eventId = eventId;
+      const events = inject(EventStore);
+      this.eventName = (events.find(eventId) ?? events.join(eventId))?.name ?? eventId;
+      this.store.openEvent(eventId);
+      if (this.syncAvailable) {
+        this.store.joinRoom(eventId);
+      }
+      inject(DestroyRef).onDestroy(() => this.store.leaveRoom());
+      return;
+    }
+
     if (!this.syncAvailable) {
       return;
     }
@@ -84,7 +103,9 @@ export class ChronometersComponent {
 
   protected async copyLink(): Promise<void> {
     const url = new URL(globalThis.location.href);
-    url.searchParams.set('room', this.store.currentRoom() ?? '');
+    if (this.eventId === null) {
+      url.searchParams.set('room', this.store.currentRoom() ?? '');
+    }
     await navigator.clipboard?.writeText(url.toString());
   }
 

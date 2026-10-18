@@ -1,5 +1,17 @@
 <section [attr.aria-label]="i18n.t('chronometers.label')">
-  @if (syncAvailable) {
+  @if (eventId) {
+    <div class="sync-form">
+      <a routerLink="/events">{{ i18n.t('events.back') }}</a>
+      <strong>{{ eventName }}</strong>
+      <small>{{ i18n.t('events.code') }} {{ eventId }}</small>
+      @if (syncAvailable) {
+        @if (store.syncError()) {
+          <p role="alert">{{ i18n.t('sync.error') }}</p>
+        }
+        <button type="button" (click)="copyLink()">{{ i18n.t('sync.copyLink') }}</button>
+      }
+    </div>
+  } @else if (syncAvailable) {
     <form
       class="sync-form"
       [attr.aria-label]="i18n.t('sync.label')"

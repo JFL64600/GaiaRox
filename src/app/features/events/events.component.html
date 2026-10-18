@@ -1,0 +1,77 @@
+<section [attr.aria-label]="i18n.t('events.label')">
+  <h1>{{ i18n.t('events.label') }}</h1>
+
+  <form class="join-form" [attr.aria-label]="i18n.t('events.join')" (submit)="join($event)">
+    <label for="event-code">{{ i18n.t('events.joinCode') }}</label>
+    <input
+      id="event-code"
+      name="eventCode"
+      type="text"
+      autocomplete="off"
+      maxlength="64"
+      [value]="joinCode()"
+      (input)="updateJoinCode($event)"
+    />
+    <button type="submit" [disabled]="!canJoin()">{{ i18n.t('events.join') }}</button>
+  </form>
+
+  <ul class="event-list" [attr.aria-label]="i18n.t('events.label')">
+    @for (event of store.events(); track event.id) {
+      <li class="event-item">
+        <a
+          class="event-link"
+          [routerLink]="['/events', event.id]"
+          [attr.aria-label]="i18n.t('events.open', { name: event.name })"
+        >
+          <strong>{{ event.name }}</strong>
+          <small>{{ i18n.t('events.code') }} {{ event.id }}</small>
+        </a>
+        <button
+          class="delete-button"
+          type="button"
+          [attr.aria-label]="i18n.t('events.delete', { name: event.name })"
+          [attr.title]="i18n.t('events.delete', { name: event.name })"
+          (click)="remove(event.id, event.name)"
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+            <path d="M6 7h12l-1 13H7L6 7zm3-4h6l1 2h4v2H4V5h4l1-2z" />
+          </svg>
+        </button>
+      </li>
+    } @empty {
+      <li class="empty">{{ i18n.t('events.empty') }}</li>
+    }
+  </ul>
+
+  @if (creating()) {
+    <form
+      class="create-form"
+      [attr.aria-label]="i18n.t('events.new')"
+      (submit)="create($event)"
+      (keydown.escape)="cancelCreating()"
+    >
+      <label for="event-name">{{ i18n.t('events.name') }}</label>
+      <input
+        id="event-name"
+        name="eventName"
+        type="text"
+        autocomplete="off"
+        required
+        autofocus
+        [attr.maxlength]="nameMaxLength"
+        [value]="pendingName()"
+        (input)="updateName($event)"
+      />
+      <div class="actions">
+        <button type="submit" [disabled]="!canCreate()">{{ i18n.t('common.add') }}</button>
+        <button class="secondary" type="button" (click)="cancelCreating()">
+          {{ i18n.t('common.cancel') }}
+        </button>
+      </div>
+    </form>
+  } @else {
+    <button class="create-button" type="button" (click)="startCreating()">
+      + {{ i18n.t('events.add') }}
+    </button>
+  }
+</section>
