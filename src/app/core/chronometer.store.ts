@@ -303,10 +303,12 @@ export class ChronometerStore {
     const now = this.now();
     const resumedEntries = Object.freeze(
       this.entries().map((entry) => {
+        if (entry.startInstant === null) {
+          return entry;
+        }
+
         const frozenElapsed =
-          entry.startInstant === null || entry.stopInstant === null
-            ? 0
-            : Math.max(0, entry.stopInstant - entry.startInstant);
+          entry.stopInstant === null ? 0 : Math.max(0, entry.stopInstant - entry.startInstant);
 
         return Object.freeze({
           ...entry,
