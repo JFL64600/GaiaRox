@@ -131,14 +131,15 @@ describe('ChronometerStore', () => {
     expect(store.chronometers()).toHaveLength(2);
   });
 
-  it('ignores add() once the shared timer has started', () => {
+  it('allows add() once the shared timer has started', () => {
     const { store } = createHarness();
     store.add();
     store.start();
 
     store.add();
 
-    expect(store.chronometers()).toHaveLength(1);
+    expect(store.chronometers()).toHaveLength(2);
+    expect(store.chronometers()[1].status).toBe('stopped');
   });
 
   it('starts every entry from one shared clock reading and one timer source', () => {

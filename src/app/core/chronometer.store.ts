@@ -27,7 +27,9 @@ export class ChronometerStore {
 
   /** Name of the open event, kept in sync with the shared document. */
   readonly eventName = this.eventNameState.asReadonly();
-  readonly started = computed(() => this.entries().some(({ startInstant }) => startInstant !== null));
+  readonly started = computed(() =>
+    this.entries().some(({ startInstant }) => startInstant !== null),
+  );
   readonly running = computed(() => this.entries().some(({ status }) => status === 'running'));
   readonly allStopped = computed(
     () =>
@@ -134,7 +136,9 @@ export class ChronometerStore {
       this.eventNameState.set(snapshot.name);
     }
     this.currentInstant.set(this.now());
-    this.entries.set(Object.freeze(snapshot.chronometers.map((entry) => Object.freeze({ ...entry }))));
+    this.entries.set(
+      Object.freeze(snapshot.chronometers.map((entry) => Object.freeze({ ...entry }))),
+    );
     this.syncTicking();
   }
 
@@ -174,10 +178,6 @@ export class ChronometerStore {
     }
   }
   add(name?: string): void {
-    if (this.started()) {
-      return;
-    }
-
     const id = crypto.randomUUID();
     const chronometerName =
       name?.trim() || this.i18n.t('chronometer.defaultName', { n: this.entries().length + 1 });
