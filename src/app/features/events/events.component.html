@@ -1,47 +1,22 @@
 <section [attr.aria-label]="i18n.t('events.label')">
   <h1>{{ i18n.t('events.label') }}</h1>
 
-  <form class="join-form" [attr.aria-label]="i18n.t('events.join')" (submit)="join($event)">
-    <label for="event-code">{{ i18n.t('events.joinCode') }}</label>
+  <form class="join-form" role="search" (submit)="$event.preventDefault()">
+    <label for="event-search">{{ i18n.t('events.search') }}</label>
     <input
-      id="event-code"
-      name="eventCode"
-      type="text"
+      id="event-search"
+      name="eventSearch"
+      type="search"
       autocomplete="off"
-      maxlength="64"
-      [value]="joinCode()"
-      (input)="updateJoinCode($event)"
+      [value]="query()"
+      (input)="updateQuery($event)"
     />
-    <button type="submit" [disabled]="!canJoin()">{{ i18n.t('events.join') }}</button>
-  </form>
-
-  <ul class="event-list" [attr.aria-label]="i18n.t('events.label')">
-    @for (event of store.events(); track event.id) {
-      <li class="event-item">
-        <a
-          class="event-link"
-          [routerLink]="['/events', event.id]"
-          [attr.aria-label]="i18n.t('events.open', { name: event.name })"
-        >
-          <strong>{{ event.name }}</strong>
-          <small>{{ i18n.t('events.code') }} {{ event.id }}</small>
-        </a>
-        <button
-          class="delete-button"
-          type="button"
-          [attr.aria-label]="i18n.t('events.delete', { name: event.name })"
-          [attr.title]="i18n.t('events.delete', { name: event.name })"
-          (click)="remove(event.id, event.name)"
-        >
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
-            <path d="M6 7h12l-1 13H7L6 7zm3-4h6l1 2h4v2H4V5h4l1-2z" />
-          </svg>
-        </button>
-      </li>
-    } @empty {
-      <li class="empty">{{ i18n.t('events.empty') }}</li>
+    @if (!creating()) {
+      <button class="create-button" type="button" (click)="startCreating()">
+        + {{ i18n.t('events.add') }}
+      </button>
     }
-  </ul>
+  </form>
 
   @if (creating()) {
     <form
@@ -69,9 +44,33 @@
         </button>
       </div>
     </form>
-  } @else {
-    <button class="create-button" type="button" (click)="startCreating()">
-      + {{ i18n.t('events.add') }}
-    </button>
   }
+
+  <ul class="event-list" [attr.aria-label]="i18n.t('events.label')">
+    @for (event of filteredEvents(); track event.id) {
+      <li class="event-item">
+        <a
+          class="event-link"
+          [routerLink]="['/events', event.id]"
+          [attr.aria-label]="i18n.t('events.open', { name: event.name })"
+        >
+          <strong>{{ event.name }}</strong>
+          <small>{{ i18n.t('events.code') }} {{ event.id }}</small>
+        </a>
+        <button
+          class="delete-button"
+          type="button"
+          [attr.aria-label]="i18n.t('events.delete', { name: event.name })"
+          [attr.title]="i18n.t('events.delete', { name: event.name })"
+          (click)="remove(event.id, event.name)"
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+            <path d="M6 7h12l-1 13H7L6 7zm3-4h6l1 2h4v2H4V5h4l1-2z" />
+          </svg>
+        </button>
+      </li>
+    } @empty {
+      <li class="empty">{{ i18n.t('events.empty') }}</li>
+    }
+  </ul>
 </section>

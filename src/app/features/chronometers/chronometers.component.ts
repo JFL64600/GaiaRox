@@ -9,20 +9,18 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { EventStore } from '../../core/event.store';
 import { ChronometerStore } from '../../core/chronometer.store';
 import { I18n } from '../../core/i18n.service';
 import { FIREBASE_OPTIONS } from '../../core/firebase.token';
 
-const ROOM_STORAGE_KEY = 'gaiarox.room';
 const ROOM_PATTERN = /^[A-Za-z0-9_-]{6,64}$/;
 
 export const CHRONOMETER_NAME_MAX_LENGTH = 40;
 
 @Component({
   selector: 'app-chronometers',
-  imports: [RouterLink],
   styleUrl: './chronometers.component.css',
   templateUrl: './chronometers.component.html',
 })
@@ -33,7 +31,6 @@ export class ChronometersComponent {
   private readonly nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
 
   protected eventId: string | null = null;
-  protected eventName = '';
   protected readonly syncAvailable = inject(FIREBASE_OPTIONS) !== null;
   protected readonly roomInput = signal('');
   protected readonly roomValid = computed(() => ROOM_PATTERN.test(this.roomInput().trim()));
@@ -57,12 +54,12 @@ export class ChronometersComponent {
     if (eventId !== null) {
       this.eventId = eventId;
       const events = inject(EventStore);
-      this.eventName = (events.find(eventId) ?? events.join(eventId))?.name ?? eventId;
-      this.store.openEvent(eventId);
+      const event = events.find(eventId) ?? events.join(eventId);
+      this.store.openEvent(event && event.name !== eventId ? event.name : null);
       if (this.syncAvailable) {
         this.store.joinRoom(eventId);
       }
-      inject(DestroyRef).onDestroy(() => this.store.leaveRoom());
+      inject(DestroyRef).onDestroy(() => this.store.openEvent());
       return;
     }
 
@@ -71,7 +68,7 @@ export class ChronometersComponent {
     }
 
     const fromUrl = new URLSearchParams(globalThis.location?.search).get('room');
-    const room = fromUrl ?? globalThis.localStorage?.getItem(ROOM_STORAGE_KEY);
+    const room = fromUrl;
     if (room && ROOM_PATTERN.test(room)) {
       this.roomInput.set(room);
       this.joinRoom();
@@ -83,7 +80,7 @@ export class ChronometersComponent {
   }
 
   protected generateRoom(): void {
-    this.roomInput.set(crypto.randomUUID().replaceAll('-', '').slice(0, 12));
+    this.roomInput.set(crypto.randomUUID());
   }
 
   protected joinRoom(): void {
@@ -92,12 +89,10 @@ export class ChronometersComponent {
     }
 
     const room = this.roomInput().trim();
-    globalThis.localStorage?.setItem(ROOM_STORAGE_KEY, room);
     this.store.joinRoom(room);
   }
 
   protected leaveRoom(): void {
-    globalThis.localStorage?.removeItem(ROOM_STORAGE_KEY);
     this.store.leaveRoom();
   }
 

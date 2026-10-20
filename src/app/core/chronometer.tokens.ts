@@ -15,6 +15,11 @@ export const CHRONOMETER_TIMER = new InjectionToken<ChronometerTimer>('CHRONOMET
   factory: () => (periodMilliseconds) => timer(periodMilliseconds, periodMilliseconds),
 });
 
+export interface RemoteEvent {
+  readonly id: string;
+  readonly name: string;
+}
+
 export interface ChronometerRemote {
   /** Subscribes to a room; `null` means the room has no data yet. Returns an unsubscribe function. */
   connect(
@@ -23,6 +28,13 @@ export interface ChronometerRemote {
     onError?: (error: unknown) => void,
   ): () => void;
   push(roomId: string, snapshot: ChronometerSnapshot, onError?: (error: unknown) => void): void;
+  /** Deletes the shared document of a room for every device. */
+  remove?(roomId: string, onError?: (error: unknown) => void): void;
+  /** Streams the list of all shared events. Returns an unsubscribe function. */
+  watchEvents?(
+    onChange: (events: readonly RemoteEvent[]) => void,
+    onError?: (error: unknown) => void,
+  ): () => void;
   /** Milliseconds to add to the local clock to match the shared server clock. */
   measureClockOffset?(): Promise<number>;
 }

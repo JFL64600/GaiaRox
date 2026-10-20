@@ -51,22 +51,15 @@ describe('ChronometerStore cloud sync', () => {
     store.start();
 
     expect(pushes.at(-1)?.roomId).toBe('room-123');
-    expect(pushes.at(-1)?.snapshot.entries[0].status).toBe('running');
-    expect(pushes.at(-1)?.snapshot.sharedStart).toBe(5_000);
-    expect(pushes.at(-1)?.snapshot.startedAtGmt).toBe('Thu, 01 Jan 1970 00:00:05 GMT');
-    expect(store.startedAtGmt()).toBe('Thu, 01 Jan 1970 00:00:05 GMT');
+    expect(pushes.at(-1)?.snapshot.chronometers[0].status).toBe('running');
   });
 
   it('applies remote state without echoing it back', () => {
     store.joinRoom('room-123');
     emit({
-      nextId: 3,
-      sharedStart: 1_000,
-      startedAtGmt: null,
-      entries: [
+      chronometers: [
         {
           id: 'chronometer-1',
-          displayNumber: 1,
           name: 'Remote',
           status: 'running',
           startInstant: 1_000,
@@ -86,7 +79,7 @@ describe('ChronometerStore cloud sync', () => {
     store.joinRoom('room-123');
     emit(null);
 
-    expect(pushes.at(-1)?.snapshot.entries.length).toBe(1);
+    expect(pushes.at(-1)?.snapshot.chronometers.length).toBe(1);
   });
 
   it('stops syncing after leaving the room', () => {

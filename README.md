@@ -75,10 +75,10 @@ not fail.
 
 ## Cloud sync (optional)
 
-Chronometers can be shared live across devices through Firebase Firestore, using a shared room code (no login).
+Chronometers can be shared live across devices through Firebase Firestore, using a shared event code (a GUID, no login). Data is stored in the `events` collection.
 
 1. Create a Firebase project and a Firestore database, then deploy `firestore.rules`.
 2. Register a web app and paste its public config into `src/app/core/firebase.config.ts` (`FIREBASE_CONFIG`).
-3. Open the app, enter a room code (or click "New code"), and join. Use "Copy share link" to open the same room on another device (`?room=<code>`).
+3. Open the app, enter an event code (or click "New code"), and join. Use "Copy share link" to open the same event on another device (`?room=<code>`).
 
-While `FIREBASE_CONFIG` is `null`, the app stays local and the sync UI is hidden. Anyone who knows a room code can read and edit it, so use long random codes. Devices should have reasonably accurate clocks because timers use absolute timestamps. Concurrent edits are last-write-wins.
+The browser's local storage only holds the theme and language. Events and chronometers live in Firestore only, and the events list is open: anyone can list and open every event. While `FIREBASE_CONFIG` is `null`, data exists in memory for the current page only and the sync UI is hidden. Anyone who knows an event code can read and edit it, so keep the GUIDs private. Devices should have reasonably accurate clocks because timers use absolute timestamps. Concurrent edits are last-write-wins.

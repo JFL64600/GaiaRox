@@ -37,22 +37,19 @@ describe('EventsComponent', () => {
   it('joins an event by code and rejects invalid codes', () => {
     expect(store.join('x')).toBeNull();
     expect(store.join('abc123')?.id).toBe('abc123');
-    expect(store.join('abc123')).toBe(store.find('abc123'));
-    expect(store.events()).toHaveLength(1);
+    expect(store.events()).toHaveLength(0);
   });
 
-  it('deletes a single event and its saved chronometers', () => {
+  it('deletes a single event', () => {
     vi.stubGlobal('confirm', () => true);
-    const a = store.create('A')!;
+    store.create('A');
     const b = store.create('B')!;
-    globalThis.localStorage.setItem(`gaiarox.chronometers.${a.id}`, '{}');
     harness.detectChanges();
 
     el().querySelectorAll<HTMLButtonElement>('.delete-button')[0].click();
     harness.detectChanges();
 
     expect(store.events().map(({ id }) => id)).toEqual([b.id]);
-    expect(globalThis.localStorage.getItem(`gaiarox.chronometers.${a.id}`)).toBeNull();
     expect(el().querySelectorAll('.event-item')).toHaveLength(1);
   });
 });
