@@ -114,6 +114,11 @@ export class ChronometerStore {
   private now(): number {
     return this.clock() + this.clockOffset;
   }
+
+  /** Current synchronized instant, for live displays that refresh outside the store tick. */
+  instant(): number {
+    return this.now();
+  }
   readonly currentRoom = this.roomId.asReadonly();
   private readonly syncErrorState = signal(false);
   /** True when the last sync attempt failed or the room held invalid data. */

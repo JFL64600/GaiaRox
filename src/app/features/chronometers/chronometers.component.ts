@@ -14,6 +14,7 @@ import { EventStore } from '../../core/event.store';
 import { ChronometerStore } from '../../core/chronometer.store';
 import { I18n } from '../../core/i18n.service';
 import { FIREBASE_OPTIONS } from '../../core/firebase.token';
+import { LiveElapsedPipe } from '../../core/live-elapsed.pipe';
 
 const ROOM_PATTERN = /^[A-Za-z0-9_-]{6,64}$/;
 
@@ -21,6 +22,7 @@ export const CHRONOMETER_NAME_MAX_LENGTH = 40;
 
 @Component({
   selector: 'app-chronometers',
+  imports: [LiveElapsedPipe],
   styleUrl: './chronometers.component.css',
   templateUrl: './chronometers.component.html',
 })
