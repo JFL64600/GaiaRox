@@ -11,14 +11,14 @@
       [value]="query()"
       (input)="updateQuery($event)"
     />
-    @if (!creating()) {
+    @if (!creating() && !readonly) {
       <button class="create-button" type="button" (click)="startCreating()">
         + {{ i18n.t('events.add') }}
       </button>
     }
   </form>
 
-  @if (creating()) {
+  @if (creating() && !readonly) {
     <form
       class="create-form"
       [attr.aria-label]="i18n.t('events.new')"
@@ -51,23 +51,25 @@
       <li class="event-item">
         <a
           class="event-link"
-          [routerLink]="['/events', event.id]"
+          [routerLink]="[base, 'events', event.id]"
           [attr.aria-label]="i18n.t('events.open', { name: event.name })"
         >
           <strong>{{ event.name }}</strong>
           <small>{{ i18n.t('events.code') }} {{ event.id }}</small>
         </a>
-        <button
-          class="delete-button"
-          type="button"
-          [attr.aria-label]="i18n.t('events.delete', { name: event.name })"
-          [attr.title]="i18n.t('events.delete', { name: event.name })"
-          (click)="remove(event.id, event.name)"
-        >
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
-            <path d="M6 7h12l-1 13H7L6 7zm3-4h6l1 2h4v2H4V5h4l1-2z" />
-          </svg>
-        </button>
+        @if (!readonly) {
+          <button
+            class="delete-button"
+            type="button"
+            [attr.aria-label]="i18n.t('events.delete', { name: event.name })"
+            [attr.title]="i18n.t('events.delete', { name: event.name })"
+            (click)="remove(event.id, event.name)"
+          >
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+              <path d="M6 7h12l-1 13H7L6 7zm3-4h6l1 2h4v2H4V5h4l1-2z" />
+            </svg>
+          </button>
+        }
       </li>
     } @empty {
       <li class="empty">{{ i18n.t('events.empty') }}</li>

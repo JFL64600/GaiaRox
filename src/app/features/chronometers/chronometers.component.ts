@@ -31,6 +31,8 @@ export class ChronometersComponent {
   private readonly nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
 
   protected eventId: string | null = null;
+  protected readonly readonly =
+    inject(ActivatedRoute, { optional: true })?.snapshot.data['readonly'] === true;
   protected readonly syncAvailable = inject(FIREBASE_OPTIONS) !== null;
   protected readonly roomInput = signal('');
   protected readonly roomValid = computed(() => ROOM_PATTERN.test(this.roomInput().trim()));
@@ -98,6 +100,7 @@ export class ChronometersComponent {
 
   protected async copyLink(): Promise<void> {
     const url = new URL(globalThis.location.href);
+    url.pathname = url.pathname.replace(/^\/admin(?=\/|$)/, '/view');
     if (this.eventId === null) {
       url.searchParams.set('room', this.store.currentRoom() ?? '');
     }
