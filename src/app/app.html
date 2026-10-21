@@ -1,6 +1,6 @@
 <header class="site-header">
   <div class="brand-group">
-    <a class="brand" routerLink="/">GaiaRox</a>
+    <a class="brand" [routerLink]="home()">GaiaRox</a>
     @if (chronometerStore.eventName(); as eventName) {
       <span class="event-title">- {{ eventName }}</span>
     }

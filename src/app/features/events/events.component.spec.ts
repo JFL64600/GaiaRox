@@ -16,7 +16,7 @@ describe('EventsComponent', () => {
     TestBed.configureTestingModule({ providers: [provideRouter(routes)] });
     TestBed.inject(I18n).language.set('en');
     store = TestBed.inject(EventStore);
-    harness = await RouterTestingHarness.create('/events');
+    harness = await RouterTestingHarness.create('/admin/events');
   });
 
   const el = (): HTMLElement => harness.routeNativeElement as HTMLElement;

@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { EVENT_NAME_MAX_LENGTH, EventStore } from '../../core/event.store';
 import { I18n } from '../../core/i18n.service';
 
@@ -13,6 +13,9 @@ export class EventsComponent {
   protected readonly store = inject(EventStore);
   protected readonly i18n = inject(I18n);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  protected readonly readonly = this.route.snapshot.data['readonly'] === true;
+  protected readonly base = this.readonly ? '/view' : '/admin';
 
   protected readonly nameMaxLength = EVENT_NAME_MAX_LENGTH;
   protected readonly creating = signal(false);
@@ -42,7 +45,7 @@ export class EventsComponent {
     const created = this.store.create(this.pendingName());
     if (created) {
       this.creating.set(false);
-      void this.router.navigate(['/events', created.id]);
+      void this.router.navigate([this.base, 'events', created.id]);
     }
   }
 
