@@ -26,6 +26,8 @@ export const routes: Routes = [
       { path: 'events/:id', loadComponent: chronometersPage },
     ],
   },
+  { path: 'events', pathMatch: 'full', redirectTo: 'view/events' },
+  { path: 'events/:id', redirectTo: 'view/events/:id' },
   { path: '', pathMatch: 'full', redirectTo: 'view' },
   { path: '**', redirectTo: 'view' },
 ];
