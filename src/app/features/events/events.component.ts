@@ -42,8 +42,8 @@ export class EventsComponent {
     this.pendingName.set((event.target as HTMLInputElement).value);
   }
 
-  protected updateResumeEnabled(event: Event): void {
-    this.pendingResumeEnabled.set((event.target as HTMLInputElement).checked);
+  protected toggleResumeEnabled(): void {
+    this.pendingResumeEnabled.update((enabled) => !enabled);
   }
 
   protected create(event?: Event): void {

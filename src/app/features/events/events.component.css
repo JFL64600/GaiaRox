@@ -93,6 +93,38 @@ input {
   color: var(--muted);
 }
 
+.resume-toggle {
+  position: relative;
+  min-width: 0;
+  width: 3.25rem;
+  min-height: 0;
+  height: 1.75rem;
+  padding: 0;
+  border: 0.125rem solid var(--accent);
+  border-radius: 1rem;
+  background: var(--surface);
+}
+
+.resume-toggle-thumb {
+  position: absolute;
+  top: 0.125rem;
+  left: 0.125rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background: var(--accent);
+  transition: transform 0.15s ease;
+}
+
+.resume-toggle[aria-checked='true'] {
+  background: var(--accent);
+}
+
+.resume-toggle[aria-checked='true'] .resume-toggle-thumb {
+  background: var(--on-accent);
+  transform: translateX(1.5rem);
+}
+
 .delete-button {
   display: inline-flex;
   min-width: 0;
