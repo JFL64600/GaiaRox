@@ -37,15 +37,18 @@
         [value]="pendingName()"
         (input)="updateName($event)"
       />
-      <label class="checkbox-label">
-        <input
-          name="eventResumeEnabled"
-          type="checkbox"
-          [checked]="pendingResumeEnabled()"
-          (change)="updateResumeEnabled($event)"
-        />
-        {{ i18n.t('events.resume') }}
-      </label>
+      <button
+        class="resume-toggle"
+        name="eventResumeEnabled"
+        type="button"
+        role="switch"
+        [attr.aria-checked]="pendingResumeEnabled()"
+        [attr.aria-label]="i18n.t('events.resume')"
+        [attr.title]="i18n.t('events.resume')"
+        (click)="toggleResumeEnabled()"
+      >
+        <span class="resume-toggle-thumb" aria-hidden="true"></span>
+      </button>
       <div class="actions">
         <button type="submit" [disabled]="!canCreate()">{{ i18n.t('common.add') }}</button>
         <button class="secondary" type="button" (click)="cancelCreating()">

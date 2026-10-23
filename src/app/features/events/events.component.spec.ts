@@ -48,9 +48,12 @@ describe('EventsComponent', () => {
     harness.detectChanges();
     el().querySelector<HTMLInputElement>('#event-name')!.value = 'On';
     el().querySelector<HTMLInputElement>('#event-name')!.dispatchEvent(new Event('input'));
-    const checkbox = el().querySelector<HTMLInputElement>('input[name="eventResumeEnabled"]')!;
-    checkbox.checked = true;
-    checkbox.dispatchEvent(new Event('change'));
+    const toggle = el().querySelector<HTMLButtonElement>('button[name="eventResumeEnabled"]')!;
+    toggle.click();
+    harness.detectChanges();
+    expect(toggle.getAttribute('role')).toBe('switch');
+    expect(toggle.getAttribute('aria-checked')).toBe('true');
+    expect(toggle.title).toBe('Show the Resume button');
     el().querySelector<HTMLFormElement>('.create-form')!.requestSubmit();
 
     expect(store.find(store.events()[1].id)?.resumeEnabled).toBe(true);
