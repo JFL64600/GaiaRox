@@ -37,6 +37,15 @@
         [value]="pendingName()"
         (input)="updateName($event)"
       />
+      <label class="checkbox-label">
+        <input
+          name="eventResumeEnabled"
+          type="checkbox"
+          [checked]="pendingResumeEnabled()"
+          (change)="updateResumeEnabled($event)"
+        />
+        {{ i18n.t('events.resume') }}
+      </label>
       <div class="actions">
         <button type="submit" [disabled]="!canCreate()">{{ i18n.t('common.add') }}</button>
         <button class="secondary" type="button" (click)="cancelCreating()">

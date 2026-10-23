@@ -5,7 +5,8 @@ service cloud.firestore {
       allow get, delete: if roomId.size() >= 6 && roomId.size() <= 64;
       allow list: if true;
       allow write: if roomId.size() >= 6 && roomId.size() <= 64
-        && request.resource.data.keys().hasOnly(['chronometers', 'name'])
+        && request.resource.data.keys().hasOnly(['chronometers', 'name', 'resumeEnabled'])
+        && (!('resumeEnabled' in request.resource.data) || request.resource.data.resumeEnabled is bool)
         && request.resource.data.chronometers is list
         && request.resource.data.chronometers.size() <= 100
         && (!('name' in request.resource.data) || request.resource.data.name == null

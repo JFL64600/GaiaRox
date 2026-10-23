@@ -34,6 +34,29 @@ describe('EventsComponent', () => {
     expect(store.events().map(({ name }) => name)).toEqual(['Rally']);
   });
 
+  it('creates an event with the resume option only when checked', () => {
+    el().querySelector<HTMLButtonElement>('.create-button')!.click();
+    harness.detectChanges();
+    const input = el().querySelector<HTMLInputElement>('#event-name')!;
+    input.value = 'Off';
+    input.dispatchEvent(new Event('input'));
+    el().querySelector<HTMLFormElement>('.create-form')!.requestSubmit();
+    harness.detectChanges();
+    expect(store.events()[0].resumeEnabled).toBe(false);
+
+    el().querySelector<HTMLButtonElement>('.create-button')!.click();
+    harness.detectChanges();
+    el().querySelector<HTMLInputElement>('#event-name')!.value = 'On';
+    el().querySelector<HTMLInputElement>('#event-name')!.dispatchEvent(new Event('input'));
+    const checkbox = el().querySelector<HTMLInputElement>('input[name="eventResumeEnabled"]')!;
+    checkbox.checked = true;
+    checkbox.dispatchEvent(new Event('change'));
+    el().querySelector<HTMLFormElement>('.create-form')!.requestSubmit();
+
+    expect(store.find(store.events()[1].id)?.resumeEnabled).toBe(true);
+    expect(store.events().map(({ resumeEnabled }) => resumeEnabled)).toEqual([false, true]);
+  });
+
   it('joins an event by code and rejects invalid codes', () => {
     expect(store.join('x')).toBeNull();
     expect(store.join('abc123')?.id).toBe('abc123');
