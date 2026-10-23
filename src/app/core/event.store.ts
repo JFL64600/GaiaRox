@@ -5,6 +5,8 @@ export interface GaiaEvent {
   /** Also the shared document id used for synchronisation. */
   readonly id: string;
   readonly name: string;
+  /** Whether chronometers of this event show the resume button. */
+  readonly resumeEnabled: boolean;
 }
 
 export const EVENT_ID_PATTERN = /^[A-Za-z0-9_-]{6,64}$/;
@@ -26,17 +28,18 @@ export class EventStore {
     }
   }
 
-  create(name: string): GaiaEvent | null {
+  create(name: string, resumeEnabled = false): GaiaEvent | null {
     const trimmed = name.trim().slice(0, EVENT_NAME_MAX_LENGTH);
     if (trimmed === '') {
       return null;
     }
-    const event = { id: crypto.randomUUID(), name: trimmed };
+    const event = { id: crypto.randomUUID(), name: trimmed, resumeEnabled };
     this.state.update((events) => Object.freeze([...events, event]));
     this.remote.push(event.id, {
       chronometers: [],
       name: event.name,
     });
+    this.remote.setResumeEnabled?.(event.id, resumeEnabled);
     return event;
   }
 
@@ -46,7 +49,7 @@ export class EventStore {
     if (!EVENT_ID_PATTERN.test(id)) {
       return null;
     }
-    return this.find(id) ?? { id, name: id };
+    return this.find(id) ?? { id, name: id, resumeEnabled: false };
   }
 
   find(id: string): GaiaEvent | undefined {

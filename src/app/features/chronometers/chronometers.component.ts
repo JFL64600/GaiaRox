@@ -31,6 +31,7 @@ export class ChronometersComponent {
   private readonly nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
 
   protected eventId: string | null = null;
+  private readonly events = inject(EventStore);
   protected readonly readonly =
     inject(ActivatedRoute, { optional: true })?.snapshot.data['readonly'] === true;
   protected readonly syncAvailable = inject(FIREBASE_OPTIONS) !== null;
@@ -55,8 +56,7 @@ export class ChronometersComponent {
     const eventId = inject(ActivatedRoute, { optional: true })?.snapshot.paramMap.get('id') ?? null;
     if (eventId !== null) {
       this.eventId = eventId;
-      const events = inject(EventStore);
-      const event = events.find(eventId) ?? events.join(eventId);
+      const event = this.events.find(eventId) ?? this.events.join(eventId);
       this.store.openEvent(event && event.name !== eventId ? event.name : null);
       if (this.syncAvailable) {
         this.store.joinRoom(eventId);
@@ -133,5 +133,9 @@ export class ChronometersComponent {
   }
   protected stop(id: string): void {
     this.store.stop(id);
+  }
+
+  protected showResume(): boolean {
+    return this.eventId !== null && this.events.find(this.eventId)?.resumeEnabled === true;
   }
 }

@@ -93,24 +93,26 @@
                   <rect x="6" y="6" width="12" height="12" rx="1" />
                 </svg>
               </button>
-              <button
-                class="icon-button"
-                type="button"
-                [attr.aria-label]="i18n.t('chronometer.resumeNamed', { name: chronometer.name })"
-                [attr.title]="i18n.t('chronometer.resume')"
-                [disabled]="chronometer.status !== 'stopped' || chronometer.startInstant === null"
-                (click)="store.resumeOne(chronometer.id)"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  width="20"
-                  height="20"
-                  fill="currentColor"
-                  aria-hidden="true"
+              @if (showResume()) {
+                <button
+                  class="icon-button"
+                  type="button"
+                  [attr.aria-label]="i18n.t('chronometer.resumeNamed', { name: chronometer.name })"
+                  [attr.title]="i18n.t('chronometer.resume')"
+                  [disabled]="chronometer.status !== 'stopped' || chronometer.startInstant === null"
+                  (click)="store.resumeOne(chronometer.id)"
                 >
-                  <path d="M5 5v14h3V5zM11 5v14l9-7z" />
-                </svg>
-              </button>
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="20"
+                    height="20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path d="M5 5v14h3V5zM11 5v14l9-7z" />
+                  </svg>
+                </button>
+              }
             </div>
           }
         </article>

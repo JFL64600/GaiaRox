@@ -1,5 +1,7 @@
 import { resetLocalStorage } from '../../core/testing-storage';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { EventStore } from '../../core/event.store';
 import { Subject } from 'rxjs';
 import { I18n } from '../../core/i18n.service';
 import { ChronometerStore } from '../../core/chronometer.store';
@@ -12,21 +14,27 @@ describe('ChronometersComponent', () => {
   let tick: Subject<void>;
   let now: number;
 
-  async function configure(): Promise<void> {
+  async function configure(resumeEnabled?: boolean): Promise<void> {
     resetLocalStorage();
     now = 0;
     tick = new Subject<void>();
+    const route = { snapshot: { data: {}, paramMap: convertToParamMap({}) } };
 
     await TestBed.configureTestingModule({
       imports: [ChronometersComponent],
       providers: [
         { provide: CHRONOMETER_CLOCK, useValue: () => now },
         { provide: CHRONOMETER_TIMER, useValue: () => tick },
+        { provide: ActivatedRoute, useValue: route },
       ],
     }).compileComponents();
 
     TestBed.inject(I18n).language.set('en');
     store = TestBed.inject(ChronometerStore);
+    if (resumeEnabled !== undefined) {
+      const event = TestBed.inject(EventStore).create('Rally', resumeEnabled);
+      route.snapshot.paramMap = convertToParamMap({ id: event!.id });
+    }
     fixture = TestBed.createComponent(ChronometersComponent);
     await fixture.whenStable();
   }
@@ -37,9 +45,7 @@ describe('ChronometersComponent', () => {
 
   function cardButtons(position: number): HTMLButtonElement[] {
     return Array.from(
-      element().querySelectorAll<HTMLButtonElement>(
-        `.card-actions button:nth-child(${position})`,
-      ),
+      element().querySelectorAll<HTMLButtonElement>(`.card-actions button:nth-child(${position})`),
     );
   }
 
@@ -282,8 +288,19 @@ describe('ChronometersComponent', () => {
     expect(times()).toEqual(['00:01.250', '00:02.000', '00:02.000', '00:02.000', '00:02.000']);
   });
 
+  it('hides the resume button unless the event enables it', async () => {
+    await configure(false);
+    await addChronometers(1);
+    startButtons().forEach((button) => button.click());
+    await fixture.whenStable();
+    stopButtons()[0]?.click();
+    await fixture.whenStable();
+
+    expect(resumeButtons()).toHaveLength(0);
+  });
+
   it('resumes a stopped chronometer from its own frozen elapsed value', async () => {
-    await configure();
+    await configure(true);
     await addChronometers(2);
     startButtons().forEach((button) => button.click());
     await fixture.whenStable();

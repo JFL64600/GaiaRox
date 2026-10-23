@@ -20,6 +20,7 @@ export class EventsComponent {
   protected readonly nameMaxLength = EVENT_NAME_MAX_LENGTH;
   protected readonly creating = signal(false);
   protected readonly pendingName = signal('');
+  protected readonly pendingResumeEnabled = signal(false);
   protected readonly canCreate = computed(() => this.pendingName().trim() !== '');
   protected readonly query = signal('');
   protected readonly filteredEvents = computed(() => {
@@ -29,6 +30,7 @@ export class EventsComponent {
 
   protected startCreating(): void {
     this.pendingName.set('');
+    this.pendingResumeEnabled.set(false);
     this.creating.set(true);
   }
 
@@ -40,9 +42,13 @@ export class EventsComponent {
     this.pendingName.set((event.target as HTMLInputElement).value);
   }
 
+  protected updateResumeEnabled(event: Event): void {
+    this.pendingResumeEnabled.set((event.target as HTMLInputElement).checked);
+  }
+
   protected create(event?: Event): void {
     event?.preventDefault();
-    const created = this.store.create(this.pendingName());
+    const created = this.store.create(this.pendingName(), this.pendingResumeEnabled());
     if (created) {
       this.creating.set(false);
       void this.router.navigate([this.base, 'events', created.id]);
