@@ -60,7 +60,9 @@ describe('ChronometersComponent', () => {
   }
 
   function statuses(): (string | null)[] {
-    return Array.from(element().querySelectorAll('.status strong'), (s) => s.textContent);
+    return Array.from(element().querySelectorAll('.chronometer-card'), (card) =>
+      card.classList.contains('running') ? 'Running' : 'Stopped',
+    );
   }
 
   function addButton(): HTMLButtonElement | null {

@@ -88,10 +88,6 @@ h2 {
   font-weight: 750;
 }
 
-.status {
-  margin-bottom: 1rem;
-}
-
 .card-actions {
   display: flex;
   gap: 0.5rem;

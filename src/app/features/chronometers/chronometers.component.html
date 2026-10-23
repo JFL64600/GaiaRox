@@ -55,14 +55,6 @@
           >
             {{ chronometer.formattedElapsed }}
           </output>
-          <p class="status">
-            {{ i18n.t('chronometer.status') }}
-            <strong>{{
-              i18n.t(
-                chronometer.status === 'running' ? 'chronometer.running' : 'chronometer.stopped'
-              )
-            }}</strong>
-          </p>
           @if (!readonly) {
             <div class="card-actions">
               <button
