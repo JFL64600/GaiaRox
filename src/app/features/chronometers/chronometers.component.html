@@ -168,4 +168,7 @@
       </li>
     }
   </ul>
+  @if (eventId && readonly) {
+    <app-ranking [chronometers]="store.chronometers()" />
+  }
 </section>
