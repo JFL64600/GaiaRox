@@ -35,22 +35,6 @@
   touch-action: manipulation;
 }
 
-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1rem;
-}
-
-nav a {
-  color: var(--header-muted);
-  text-underline-offset: 0.3rem;
-}
-
-nav a.active {
-  color: var(--header-text);
-  font-weight: 700;
-}
-
 main {
   width: min(72rem, 100%);
   margin-inline: auto;

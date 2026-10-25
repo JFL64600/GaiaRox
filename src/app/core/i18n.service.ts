@@ -14,9 +14,6 @@ const MESSAGES = {
     'chronometers.label': 'Chronomètres',
     'chronometer.defaultName': 'Chronomètre {n}',
     'chronometer.elapsed': 'Temps écoulé {time}',
-    'chronometer.status': 'Statut :',
-    'chronometer.running': 'En cours',
-    'chronometer.stopped': 'Arrêté',
     'chronometer.start': 'Démarrer',
     'chronometer.stop': 'Arrêter',
     'chronometer.resume': 'Reprendre',
@@ -55,15 +52,17 @@ const MESSAGES = {
     'theme.purple': 'Violet',
     'theme.sunset': 'Coucher de soleil',
     'theme.dark': 'Sombre',
+    'ranking.title': 'Classement',
+    'ranking.style': 'Style du classement',
+    'ranking.podium': 'Podium',
+    'ranking.hero': 'Vedette',
+    'ranking.medals': 'Médailles',
   },
   en: {
     'language.label': 'Language',
     'chronometers.label': 'Chronometers',
     'chronometer.defaultName': 'Chronometer {n}',
     'chronometer.elapsed': 'Elapsed time {time}',
-    'chronometer.status': 'Status:',
-    'chronometer.running': 'Running',
-    'chronometer.stopped': 'Stopped',
     'chronometer.start': 'Start',
     'chronometer.stop': 'Stop',
     'chronometer.resume': 'Resume',
@@ -102,15 +101,17 @@ const MESSAGES = {
     'theme.purple': 'Purple',
     'theme.sunset': 'Sunset',
     'theme.dark': 'Dark',
+    'ranking.title': 'Ranking',
+    'ranking.style': 'Ranking style',
+    'ranking.podium': 'Podium',
+    'ranking.hero': 'Hero',
+    'ranking.medals': 'Medals',
   },
   eu: {
     'language.label': 'Hizkuntza',
     'chronometers.label': 'Kronometroak',
     'chronometer.defaultName': '{n}. kronometroa',
     'chronometer.elapsed': 'Igarotako denbora {time}',
-    'chronometer.status': 'Egoera:',
-    'chronometer.running': 'Martxan',
-    'chronometer.stopped': 'Geldituta',
     'chronometer.start': 'Hasi',
     'chronometer.stop': 'Gelditu',
     'chronometer.resume': 'Berrekin',
@@ -149,6 +150,11 @@ const MESSAGES = {
     'theme.purple': 'More',
     'theme.sunset': 'Ilunabarra',
     'theme.dark': 'Iluna',
+    'ranking.title': 'Sailkapena',
+    'ranking.style': 'Sailkapenaren estiloa',
+    'ranking.podium': 'Podiuma',
+    'ranking.hero': 'Nagusia',
+    'ranking.medals': 'Dominak',
   },
 } as const satisfies Record<Language, Record<string, string>>;
 
@@ -189,3 +195,4 @@ export class I18n {
     }
   }
 }
+

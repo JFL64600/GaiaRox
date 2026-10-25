@@ -33,6 +33,19 @@
         </button>
       }
     </div>
+    @if (showRankingPicker()) {
+      <div class="language-switch" role="group" [attr.aria-label]="i18n.t('ranking.style')">
+        @for (option of rankingStyles; track option.id) {
+          <button
+            type="button"
+            [attr.aria-pressed]="rankingService.style() === option.id"
+            (click)="rankingService.setStyle(option.id)"
+          >
+            {{ i18n.t(option.labelKey) }}
+          </button>
+        }
+      </div>
+    }
     <div class="theme-switch">
       <button
         type="button"

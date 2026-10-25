@@ -3,6 +3,7 @@ import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
 import { ThemeId, ThemeService, THEMES } from './core/theme.service';
+import { RANKING_STYLES, RankingStyleService } from './core/ranking-style.service';
 import { ChronometerStore } from './core/chronometer.store';
 import { I18n, LANGUAGE_LABELS, LANGUAGES } from './core/i18n.service';
 
@@ -19,6 +20,8 @@ export class App {
   protected readonly languageLabels = LANGUAGE_LABELS;
   protected readonly themeService = inject(ThemeService);
   protected readonly themes = THEMES;
+  protected readonly rankingService = inject(RankingStyleService);
+  protected readonly rankingStyles = RANKING_STYLES;
 
   private readonly router = inject(Router);
   private readonly url = toSignal(
@@ -29,6 +32,9 @@ export class App {
     { initialValue: this.router.url },
   );
   protected readonly home = computed(() => (this.url().startsWith('/admin') ? '/admin' : '/view'));
+  protected readonly showRankingPicker = computed(
+    () => !this.rankingService.mobile() && /^\/view\/events\/[^/?#]+/.test(this.url()),
+  );
 
   protected readonly themeMenuOpen = signal(false);
 

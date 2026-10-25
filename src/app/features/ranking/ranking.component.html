@@ -1,0 +1,75 @@
+@if (entries().length > 0) {
+  <section class="ranking" [attr.aria-label]="i18n.t('ranking.title')">
+    <h2>{{ i18n.t('ranking.title') }}</h2>
+
+    @switch (layout()) {
+      @case ('podium') {
+        <ol class="podium">
+          @for (entry of podium(); track entry.id) {
+            <li [class]="'place place-' + entry.position">
+              <span class="badge">{{ entry.letter }}</span>
+              <strong class="name">{{ entry.name }}</strong>
+              <span class="time">{{ entry.time }}</span>
+              <span class="block">{{ entry.position }}</span>
+            </li>
+          }
+        </ol>
+      }
+      @case ('hero') {
+        <div class="hero">
+          @if (top()[0]; as first) {
+            <span class="badge large place-1">{{ first.letter }}</span>
+            <div class="hero-name">🥇 {{ first.name }}</div>
+            <div class="hero-time">{{ first.time }}</div>
+          }
+          @if (top().length > 1) {
+            <ol class="duo">
+              @for (entry of top().slice(1); track entry.id) {
+                <li>
+                  {{ entry.medal }} {{ entry.name }}<br />
+                  <span class="time">{{ entry.time }}</span>
+                </li>
+              }
+            </ol>
+          }
+        </div>
+      }
+      @case ('medals') {
+        <ol class="medals">
+          @for (entry of podium(); track entry.id) {
+            <li [class]="'medal place-' + entry.position">
+              <span class="emoji" aria-hidden="true">{{ entry.medal }}</span>
+              <strong class="name">{{ entry.name }}</strong>
+              <span class="time">{{ entry.time }}</span>
+            </li>
+          }
+        </ol>
+      }
+      @default {
+        <ol class="ribbon">
+          @for (entry of top(); track entry.id) {
+            <li [class]="'row place-' + entry.position">
+              <span class="emoji" aria-hidden="true">{{ entry.medal }}</span>
+              <span class="badge">{{ entry.letter }}</span>
+              <strong class="name">{{ entry.name }}</strong>
+              <span class="time">{{ entry.time }}</span>
+            </li>
+          }
+        </ol>
+      }
+    }
+
+    @if (rest().length > 0) {
+      <ol class="rest" start="4">
+        @for (entry of rest(); track entry.id) {
+          <li class="row">
+            <span class="position">{{ entry.position }}</span>
+            <span class="badge small">{{ entry.letter }}</span>
+            <strong class="name">{{ entry.name }}</strong>
+            <span class="time">{{ entry.time }}</span>
+          </li>
+        }
+      </ol>
+    }
+  </section>
+}
