@@ -1,4 +1,7 @@
-<section [attr.aria-label]="i18n.t('chronometers.label')">
+<section
+  [class.split]="eventId && readonly"
+  [attr.aria-label]="i18n.t('chronometers.label')"
+>
   @if (eventId) {
     @if (store.syncError()) {
       <p class="sync-form" role="alert">{{ i18n.t('sync.error') }}</p>
@@ -39,11 +42,12 @@
     </form>
   }
   <ul class="chronometer-grid" [attr.aria-label]="i18n.t('chronometers.label')">
-    @for (chronometer of store.chronometers(); track chronometer.id) {
+    @for (chronometer of visibleChronometers(); track chronometer.id) {
       <li>
         <article
           class="chronometer-card"
           [class.running]="chronometer.status === 'running'"
+          [class.leaving]="leaving().has(chronometer.id)"
           [attr.id]="chronometer.id"
         >
           <h2>{{ chronometer.name }}</h2>

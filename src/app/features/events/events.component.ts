@@ -1,4 +1,13 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  ElementRef,
+  inject,
+  Injector,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { EVENT_NAME_MAX_LENGTH, EventStore } from '../../core/event.store';
 import { I18n } from '../../core/i18n.service';
@@ -14,6 +23,8 @@ export class EventsComponent {
   protected readonly i18n = inject(I18n);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly injector = inject(Injector);
+  private readonly nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
   protected readonly readonly = this.route.snapshot.data['readonly'] === true;
   protected readonly base = this.readonly ? '/view' : '/admin';
 
@@ -32,6 +43,7 @@ export class EventsComponent {
     this.pendingName.set('');
     this.pendingResumeEnabled.set(false);
     this.creating.set(true);
+    afterNextRender(() => this.nameInput()?.nativeElement.focus(), { injector: this.injector });
   }
 
   protected cancelCreating(): void {

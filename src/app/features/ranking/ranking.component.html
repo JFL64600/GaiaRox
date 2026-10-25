@@ -1,12 +1,10 @@
 @if (entries().length > 0) {
   <section class="ranking" [attr.aria-label]="i18n.t('ranking.title')">
-    <h2>{{ i18n.t('ranking.title') }}</h2>
-
     @switch (layout()) {
       @case ('podium') {
         <ol class="podium">
           @for (entry of podium(); track entry.id) {
-            <li [class]="'place place-' + entry.position">
+            <li [class]="'place place-' + entry.position" [class.fresh]="isFresh(entry.id)">
               <span class="badge">{{ entry.letter }}</span>
               <strong class="name">{{ entry.name }}</strong>
               <span class="time">{{ entry.time }}</span>
@@ -16,7 +14,7 @@
         </ol>
       }
       @case ('hero') {
-        <div class="hero">
+        <div class="hero" [class.fresh]="top()[0] && isFresh(top()[0].id)">
           @if (top()[0]; as first) {
             <span class="badge large place-1">{{ first.letter }}</span>
             <div class="hero-name">🥇 {{ first.name }}</div>
@@ -25,7 +23,7 @@
           @if (top().length > 1) {
             <ol class="duo">
               @for (entry of top().slice(1); track entry.id) {
-                <li>
+                <li [class.fresh]="isFresh(entry.id)">
                   {{ entry.medal }} {{ entry.name }}<br />
                   <span class="time">{{ entry.time }}</span>
                 </li>
@@ -37,7 +35,7 @@
       @case ('medals') {
         <ol class="medals">
           @for (entry of podium(); track entry.id) {
-            <li [class]="'medal place-' + entry.position">
+            <li [class]="'medal place-' + entry.position" [class.fresh]="isFresh(entry.id)">
               <span class="emoji" aria-hidden="true">{{ entry.medal }}</span>
               <strong class="name">{{ entry.name }}</strong>
               <span class="time">{{ entry.time }}</span>
@@ -48,7 +46,7 @@
       @default {
         <ol class="ribbon">
           @for (entry of top(); track entry.id) {
-            <li [class]="'row place-' + entry.position">
+            <li [class]="'row place-' + entry.position" [class.fresh]="isFresh(entry.id)">
               <span class="emoji" aria-hidden="true">{{ entry.medal }}</span>
               <span class="badge">{{ entry.letter }}</span>
               <strong class="name">{{ entry.name }}</strong>
@@ -62,7 +60,7 @@
     @if (rest().length > 0) {
       <ol class="rest" start="4">
         @for (entry of rest(); track entry.id) {
-          <li class="row">
+          <li class="row" [class.fresh]="isFresh(entry.id)">
             <span class="position">{{ entry.position }}</span>
             <span class="badge small">{{ entry.letter }}</span>
             <strong class="name">{{ entry.name }}</strong>

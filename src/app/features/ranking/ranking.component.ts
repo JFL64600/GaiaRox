@@ -1,9 +1,10 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { ChronometerView } from '../../core/chronometer.model';
 import { I18n } from '../../core/i18n.service';
 import { RankingStyleService } from '../../core/ranking-style.service';
 
 const MEDALS = ['🥇', '🥈', '🥉'] as const;
+const FRESH_MS = 3000;
 
 export interface RankedEntry {
   readonly id: string;
@@ -47,4 +48,34 @@ export class RankingComponent {
     const [first, second, third] = this.top();
     return [second, first, third].filter((entry) => entry !== undefined);
   });
+
+  private readonly seen = new Set<string>();
+  private initialized = false;
+  private readonly freshIds = signal<ReadonlySet<string>>(new Set());
+
+  constructor() {
+    effect(() => {
+      const loaded = this.chronometers().length > 0;
+      const ids = this.entries().map(({ id }) => id);
+      const added = ids.filter((id) => !this.seen.has(id));
+      ids.forEach((id) => this.seen.add(id));
+      if (!this.initialized) {
+        this.initialized = loaded;
+        return;
+      }
+      if (added.length === 0) {
+        return;
+      }
+      untracked(() => this.freshIds.update((set) => new Set([...set, ...added])));
+      setTimeout(
+        () =>
+          this.freshIds.update((set) => new Set([...set].filter((id) => !added.includes(id)))),
+        FRESH_MS,
+      );
+    });
+  }
+
+  protected isFresh(id: string): boolean {
+    return this.freshIds().has(id);
+  }
 }
