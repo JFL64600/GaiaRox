@@ -24,6 +24,7 @@ export class ChronometerStore {
   private clockOffset = 0;
   private destroyed = false;
   private joinToken = 0;
+  private remoteSeen = false;
 
   /** Name of the open event, kept in sync with the shared document. */
   readonly eventName = this.eventNameState.asReadonly();
@@ -109,6 +110,7 @@ export class ChronometerStore {
     this.roomId.set(null);
     this.syncErrorState.set(false);
     this.clockOffset = 0;
+    this.remoteSeen = false;
   }
 
   private now(): number {
@@ -133,9 +135,17 @@ export class ChronometerStore {
 
   private applyRemote(snapshot: ChronometerSnapshot | null): void {
     if (snapshot === null) {
+      if (this.remoteSeen) {
+        // The event was deleted remotely: stop syncing so we don't recreate it.
+        this.leaveRoom();
+        this.entries.set(Object.freeze([]));
+        this.syncTicking();
+        return;
+      }
       this.publish();
       return;
     }
+    this.remoteSeen = true;
 
     if (snapshot.name) {
       this.eventNameState.set(snapshot.name);
