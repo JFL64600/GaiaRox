@@ -3,10 +3,12 @@ import {
   Component,
   computed,
   DestroyRef,
+  effect,
   ElementRef,
   inject,
   Injector,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
@@ -20,6 +22,7 @@ import { RankingComponent } from '../ranking/ranking.component';
 const ROOM_PATTERN = /^[A-Za-z0-9_-]{6,64}$/;
 
 export const CHRONOMETER_NAME_MAX_LENGTH = 40;
+const LEAVE_MS = 600;
 
 @Component({
   selector: 'app-chronometers',
@@ -56,6 +59,7 @@ export class ChronometersComponent {
   );
 
   constructor() {
+    effect(() => this.trackFinished());
     const eventId = inject(ActivatedRoute, { optional: true })?.snapshot.paramMap.get('id') ?? null;
     if (eventId !== null) {
       this.eventId = eventId;
@@ -136,6 +140,48 @@ export class ChronometersComponent {
   }
   protected stop(id: string): void {
     this.store.stop(id);
+  }
+
+  protected readonly leaving = signal<ReadonlySet<string>>(new Set());
+  private visibleIds = new Set<string>();
+
+  protected readonly visibleChronometers = computed(() =>
+    this.eventId && this.readonly
+      ? this.store
+          .chronometers()
+          .filter(
+            ({ id, status, startInstant }) =>
+              !(status === 'stopped' && startInstant !== null) || this.leaving().has(id),
+          )
+      : this.store.chronometers(),
+  );
+
+  private trackFinished(): void {
+    if (!this.eventId || !this.readonly) {
+      return;
+    }
+    const current = this.store.chronometers();
+    const nowVisible = new Set<string>();
+    const finished: string[] = [];
+    for (const { id, status, startInstant } of current) {
+      if (status === 'stopped' && startInstant !== null) {
+        if (this.visibleIds.has(id)) {
+          finished.push(id);
+        }
+      } else {
+        nowVisible.add(id);
+      }
+    }
+    this.visibleIds = nowVisible;
+    if (finished.length === 0) {
+      return;
+    }
+    untracked(() => this.leaving.update((set) => new Set([...set, ...finished])));
+    setTimeout(
+      () =>
+        this.leaving.update((set) => new Set([...set].filter((id) => !finished.includes(id)))),
+      LEAVE_MS,
+    );
   }
 
   protected showResume(): boolean {

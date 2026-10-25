@@ -57,6 +57,23 @@ button:disabled {
   border-color: var(--accent-strong);
 }
 
+.chronometer-card.leaving {
+  animation: flip-out 0.6s ease-in forwards;
+}
+
+@keyframes flip-out {
+  to {
+    opacity: 0;
+    transform: perspective(600px) rotateY(90deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chronometer-card.leaving {
+    animation-duration: 0.01s;
+  }
+}
+
 h2 {
   color: var(--muted);
   font-size: 1rem;
@@ -179,6 +196,40 @@ h2 {
   .chronometer-card,
   .name-form {
     padding: 1rem;
+  }
+}
+
+.split {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  align-items: start;
+  gap: 1.5rem;
+}
+
+.split > .sync-form {
+  grid-column: 1 / -1;
+}
+
+.split > app-ranking {
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+}
+
+.split > .chronometer-grid {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+@media (max-width: 48rem) {
+  .split {
+    grid-template-columns: 1fr;
+  }
+
+  .split > app-ranking,
+  .split > .chronometer-grid {
+    grid-column: 1;
+    grid-row: auto;
   }
 }
 
