@@ -48,7 +48,7 @@ describe('ChronometerStore cloud sync', () => {
   it('pushes local changes once joined', () => {
     store.joinRoom('room-123');
     store.add('A');
-    store.start();
+    store.startOne(store.chronometers()[0].id);
 
     expect(pushes.at(-1)?.roomId).toBe('room-123');
     expect(pushes.at(-1)?.snapshot.chronometers[0].status).toBe('running');
@@ -70,7 +70,7 @@ describe('ChronometerStore cloud sync', () => {
 
     expect(store.chronometers()[0].name).toBe('Remote');
     expect(store.chronometers()[0].elapsedMilliseconds).toBe(4_000);
-    expect(store.started()).toBe(true);
+    expect(store.chronometers()[0].status).toBe('running');
     expect(pushes).toEqual([]);
   });
 

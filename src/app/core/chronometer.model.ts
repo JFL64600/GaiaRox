@@ -1,4 +1,4 @@
-export type ChronometerStatus = 'stopped' | 'running';
+type ChronometerStatus = 'stopped' | 'running';
 
 export interface ChronometerState {
   readonly id: string;

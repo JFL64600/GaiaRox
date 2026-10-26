@@ -15,7 +15,7 @@ export const RANKING_STYLES: readonly RankingStyleOption[] = [
   { id: 'medals', labelKey: 'ranking.medals' },
 ];
 
-export const DEFAULT_RANKING_STYLE: RankingStyleId = 'podium';
+const DEFAULT_RANKING_STYLE: RankingStyleId = 'podium';
 const RANKING_STYLE_STORAGE_KEY = 'gaiarox.rankingStyle';
 const MOBILE_QUERY = '(max-width: 34rem)';
 

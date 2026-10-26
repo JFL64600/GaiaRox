@@ -28,16 +28,6 @@ export class ChronometerStore {
 
   /** Name of the open event, kept in sync with the shared document. */
   readonly eventName = this.eventNameState.asReadonly();
-  readonly started = computed(() =>
-    this.entries().some(({ startInstant }) => startInstant !== null),
-  );
-  readonly running = computed(() => this.entries().some(({ status }) => status === 'running'));
-  readonly allStopped = computed(
-    () =>
-      this.started() &&
-      this.entries().length > 0 &&
-      this.entries().every(({ status }) => status === 'stopped'),
-  );
   readonly chronometers = computed<readonly ChronometerView[]>(() => {
     const currentInstant = this.currentInstant();
 
@@ -211,29 +201,6 @@ export class ChronometerStore {
     this.publish();
   }
 
-  start(): void {
-    if (this.started() || this.entries().length === 0) {
-      return;
-    }
-
-    const startInstant = this.now();
-    const runningEntries = Object.freeze(
-      this.entries().map((entry) =>
-        Object.freeze({
-          ...entry,
-          status: 'running' as const,
-          startInstant,
-          stopInstant: null,
-        }),
-      ),
-    );
-
-    this.currentInstant.set(startInstant);
-    this.entries.set(runningEntries);
-    this.ensureTicking();
-    this.publish();
-  }
-
   startOne(id: string): void {
     const now = this.now();
     this.updateOne(id, now, (entry) => {
@@ -285,78 +252,23 @@ export class ChronometerStore {
     }
 
     const stopInstant = this.now();
-    const stoppedEntries = entries.map((entry) =>
-      entry.id === id
-        ? Object.freeze({
-            ...entry,
-            status: 'stopped' as const,
-            stopInstant,
-          })
-        : entry,
-    );
-
-    const sortedEntries = Object.freeze(
-      [...stoppedEntries].sort(
-        (a, b) =>
-          statusRank(a) - statusRank(b) ||
-          elapsedAtInstant(a, stopInstant) - elapsedAtInstant(b, stopInstant) ||
-          numericSuffix(a.id) - numericSuffix(b.id),
+    const stoppedEntries = Object.freeze(
+      entries.map((entry) =>
+        entry.id === id
+          ? Object.freeze({
+              ...entry,
+              status: 'stopped' as const,
+              stopInstant,
+            })
+          : entry,
       ),
     );
 
-    this.entries.set(sortedEntries);
+    this.entries.set(stoppedEntries);
 
     this.syncTicking();
     this.publish();
   }
-
-  resume(): void {
-    if (!this.allStopped()) {
-      return;
-    }
-
-    const now = this.now();
-    const resumedEntries = Object.freeze(
-      this.entries().map((entry) => {
-        if (entry.startInstant === null) {
-          return entry;
-        }
-
-        const frozenElapsed =
-          entry.stopInstant === null ? 0 : Math.max(0, entry.stopInstant - entry.startInstant);
-
-        return Object.freeze({
-          ...entry,
-          status: 'running' as const,
-          startInstant: now - frozenElapsed,
-          stopInstant: null,
-        });
-      }),
-    );
-
-    this.currentInstant.set(now);
-    this.entries.set(resumedEntries);
-    this.ensureTicking();
-    this.publish();
-  }
-}
-
-function statusRank(entry: ChronometerState): number {
-  return entry.status === 'stopped' ? 0 : 1;
-}
-
-function elapsedAtInstant(entry: ChronometerState, referenceInstant: number): number {
-  if (entry.startInstant === null) {
-    return Number.POSITIVE_INFINITY;
-  }
-
-  const endInstant = entry.status === 'stopped' ? entry.stopInstant! : referenceInstant;
-  return Math.max(0, endInstant - entry.startInstant);
-}
-
-function numericSuffix(id: string): number {
-  const match = /(\d+)$/.exec(id);
-  return match ? Number(match[1]) : Number.POSITIVE_INFINITY;
 }
 
 export function formatElapsed(elapsedMilliseconds: number): string {

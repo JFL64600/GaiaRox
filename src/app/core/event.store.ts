@@ -9,7 +9,7 @@ export interface GaiaEvent {
   readonly resumeEnabled: boolean;
 }
 
-export const EVENT_ID_PATTERN = /^[A-Za-z0-9_-]{6,64}$/;
+const EVENT_ID_PATTERN = /^[A-Za-z0-9_-]{6,64}$/;
 export const EVENT_NAME_MAX_LENGTH = 40;
 
 /** Events live in Firestore only; without Firebase they exist in memory for the current page. */

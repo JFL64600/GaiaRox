@@ -5,7 +5,7 @@ export type Language = 'fr' | 'en' | 'eu';
 /** Languages offered in the switcher; English texts are kept but hidden. */
 export const LANGUAGES: readonly Language[] = ['eu', 'fr'];
 export const LANGUAGE_LABELS: Record<Language, string> = { fr: 'FR', en: 'EN', eu: 'EUS' };
-export const DEFAULT_LANGUAGE: Language = 'eu';
+const DEFAULT_LANGUAGE: Language = 'eu';
 const LANGUAGE_STORAGE_KEY = 'gaiarox.language';
 
 const MESSAGES = {
