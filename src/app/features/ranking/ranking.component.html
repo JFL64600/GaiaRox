@@ -70,4 +70,6 @@
       </ol>
     }
   </section>
+} @else if (started()) {
+  <p class="waiting" role="status">{{ i18n.t('ranking.waiting') }}</p>
 }

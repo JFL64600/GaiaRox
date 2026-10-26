@@ -41,6 +41,9 @@ export class RankingComponent {
   protected readonly i18n = inject(I18n);
   protected readonly layout = inject(RankingStyleService).layout;
   protected readonly entries = computed(() => rank([...this.chronometers()]));
+  protected readonly started = computed(() =>
+    this.chronometers().length > 0,
+  );
   protected readonly top = computed(() => this.entries().slice(0, 3));
   protected readonly rest = computed(() => this.entries().slice(3));
   /** Podium order: 2nd, 1st, 3rd. */

@@ -145,6 +145,9 @@ export class ChronometersComponent {
   protected readonly leaving = signal<ReadonlySet<string>>(new Set());
   private visibleIds = new Set<string>();
 
+  protected readonly started = computed(() =>
+    this.store.chronometers().length > 0,
+  );
   protected readonly visibleChronometers = computed(() =>
     this.eventId && this.readonly
       ? this.store

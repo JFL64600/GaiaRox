@@ -240,3 +240,17 @@ h2 {
   align-items: center;
   margin-bottom: 1rem;
 }
+
+.waiting {
+  text-align: center;
+  opacity: 0.7;
+  list-style: none;
+}
+
+.startup-banner {
+  grid-column: 1 / -1;
+  margin: 0;
+  text-align: center;
+  font-size: 1.25rem;
+  opacity: 0.7;
+}

@@ -41,6 +41,9 @@
       }
     </form>
   }
+  @if (eventId && readonly && !started()) {
+    <p class="startup-banner" role="status">{{ i18n.t('startup.waiting') }}</p>
+  }
   <ul class="chronometer-grid" [attr.aria-label]="i18n.t('chronometers.label')">
     @for (chronometer of visibleChronometers(); track chronometer.id) {
       <li>
@@ -121,6 +124,9 @@
           }
         </article>
       </li>
+    }
+    @if (eventId && readonly && started() && visibleChronometers().length === 0) {
+      <li class="waiting" role="status">{{ i18n.t('chronometers.waiting') }}</li>
     }
     @if (!readonly) {
       <li>
