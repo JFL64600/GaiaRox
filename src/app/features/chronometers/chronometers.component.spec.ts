@@ -223,16 +223,16 @@ describe('ChronometersComponent', () => {
     expect(stopButtons().every(({ disabled }) => disabled)).toBe(true);
   });
 
-  it('places the Add tile as the last grid item so it wraps every 4 chronometers', async () => {
+  it('places the Add tile as the first grid item', async () => {
     await configure();
 
     await addChronometers(5);
 
     const gridItems = Array.from(element().querySelectorAll('.chronometer-grid > li'));
     expect(gridItems).toHaveLength(6);
-    expect(gridItems[5].querySelector('.add-tile')).toBeInstanceOf(HTMLButtonElement);
+    expect(gridItems[0].querySelector('.add-tile')).toBeInstanceOf(HTMLButtonElement);
     expect(
-      gridItems.slice(0, 5).every((item) => item.querySelector('.chronometer-card') !== null),
+      gridItems.slice(1).every((item) => item.querySelector('.chronometer-card') !== null),
     ).toBe(true);
   });
 

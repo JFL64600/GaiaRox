@@ -19,7 +19,7 @@ export const THEMES: readonly ThemeOption[] = [
   { id: 'dark', labelKey: 'theme.dark', swatch: '#0f172a' },
 ];
 
-export const DEFAULT_THEME: ThemeId = 'forest';
+const DEFAULT_THEME: ThemeId = 'forest';
 const THEME_STORAGE_KEY = 'gaiarox.theme';
 
 @Injectable({ providedIn: 'root' })
