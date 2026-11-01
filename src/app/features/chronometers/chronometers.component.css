@@ -70,7 +70,9 @@ button:disabled {
 
 h2 {
   color: var(--muted);
-  font-size: 1rem;
+  margin-bottom: 0.83rem;
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .time {
